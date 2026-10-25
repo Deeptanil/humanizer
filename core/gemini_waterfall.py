@@ -113,6 +113,8 @@ class GeminiWaterfallRouter:
         self.cooldown_until: Dict[str, float] = {}
         # Tracks models that returned 404/invalid so we don't retry them endlessly
         self.dead_models: set = set()
+        # Tracks keys that have exhausted their daily free tier quota
+        self.exhausted_keys: set = set()
         # Per-model rate limit tracking (sliding 60-second window + last call timestamp)
         self.model_call_timestamps: Dict[str, List[float]] = {}
         self.last_called_at: Dict[str, float] = {}
@@ -155,6 +157,7 @@ class GeminiWaterfallRouter:
         self._explicit_api_key = api_key.strip()
         self.dead_models.clear()
         self.cooldown_until.clear()
+        self.exhausted_keys.clear()
 
     def get_model_priority(self) -> List[str]:
         """Returns the ordered list of models to try."""
@@ -324,14 +327,20 @@ class GeminiWaterfallRouter:
             else:
                 ready_candidates.append(m)
 
-        # In production default mode, keep gemini-3.5-flash as active backup
-        if self._explicit_models is None and "gemini-3.5-flash" not in ready_candidates and "gemini-3.5-flash" not in throttled_candidates:
-            ready_candidates.append("gemini-3.5-flash")
+        # In production default mode, keep gemini-3.1-flash-lite-preview & gemini-3.5-flash as active fallbacks
+        if self._explicit_models is None:
+            if "gemini-3.1-flash-lite-preview" not in ready_candidates and "gemini-3.1-flash-lite-preview" not in throttled_candidates:
+                ready_candidates.insert(1, "gemini-3.1-flash-lite-preview")
+            if "gemini-3.5-flash" not in ready_candidates and "gemini-3.5-flash" not in throttled_candidates:
+                ready_candidates.append("gemini-3.5-flash")
 
         full_try_order = ready_candidates + throttled_candidates + cooling_candidates
 
+        # If there are multiple keys and some are exhausted, filter down to fresh keys first
+        active_keys = [k for k in api_keys if k not in self.exhausted_keys] or api_keys
+
         for model in full_try_order:
-            for key_idx, api_key in enumerate(api_keys):
+            for key_idx, api_key in enumerate(active_keys):
                 self.record_model_call(model)
                 out_text, err, status = self.call_single_model(
                     model=model,
@@ -358,12 +367,15 @@ class GeminiWaterfallRouter:
                         "success": True,
                         "text": out_text,
                         "model_used": model,
+                        "quota_exhausted": False,
                         "attempts": attempts,
                     }
 
                 # Handle error codes intelligently
                 attempts.append({"model": model, "status": f"failed_{status}", "error": err})
                 if status in (429, 503):
+                    if "per day" in str(err).lower() or "daily" in str(err).lower() or "quota" in str(err).lower():
+                        self.exhausted_keys.add(api_key)
                     # Rate limit or overloaded -> put model on short cooldown
                     self.cooldown_until[model] = time.time() + self.cooldown_seconds
                 elif status == 404:

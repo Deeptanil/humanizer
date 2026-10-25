@@ -375,12 +375,14 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
         let chunkResultText = null;
         for (let attempt = 0; attempt < 2; attempt++) {
           try {
+            const userKey = localStorage.getItem("turnitout_gemini_api_key");
             const res = await fetch("/api/humanize", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 text: chunkPayloadText,
                 intensity,
+                api_key: userKey || undefined,
               }),
             });
 
@@ -583,4 +585,60 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
       });
     }
   } catch (_) {}
+
+  // API Key Settings Modal
+  const apiKeyModal = document.getElementById("apiKeyModal");
+  const apiKeySettingsBtn = document.getElementById("apiKeySettingsBtn");
+  const closeApiKeyModalBtn = document.getElementById("closeApiKeyModalBtn");
+  const userApiKeyInput = document.getElementById("userApiKeyInput");
+  const saveApiKeyBtn = document.getElementById("saveApiKeyBtn");
+  const clearApiKeyBtn = document.getElementById("clearApiKeyBtn");
+
+  const existingKey = localStorage.getItem("turnitout_gemini_api_key");
+  if (existingKey && userApiKeyInput) {
+    userApiKeyInput.value = existingKey;
+  }
+
+  if (apiKeySettingsBtn && apiKeyModal) {
+    apiKeySettingsBtn.addEventListener("click", () => {
+      apiKeyModal.style.display = "flex";
+      if (userApiKeyInput) userApiKeyInput.focus();
+    });
+  }
+
+  if (closeApiKeyModalBtn && apiKeyModal) {
+    closeApiKeyModalBtn.addEventListener("click", () => {
+      apiKeyModal.style.display = "none";
+    });
+  }
+
+  if (apiKeyModal) {
+    apiKeyModal.addEventListener("click", (e) => {
+      if (e.target === apiKeyModal) apiKeyModal.style.display = "none";
+    });
+  }
+
+  if (saveApiKeyBtn && userApiKeyInput) {
+    saveApiKeyBtn.addEventListener("click", () => {
+      const val = userApiKeyInput.value.trim();
+      if (val) {
+        localStorage.setItem("turnitout_gemini_api_key", val);
+        if (activeModelBadge) activeModelBadge.innerHTML = `${PULSE_SVG} KEY SAVED // READY`;
+        alert("API Key saved! Requests will now use your key with fresh quota.");
+      } else {
+        localStorage.removeItem("turnitout_gemini_api_key");
+        alert("API Key cleared. Engine will use server default waterfall.");
+      }
+      if (apiKeyModal) apiKeyModal.style.display = "none";
+    });
+  }
+
+  if (clearApiKeyBtn && userApiKeyInput) {
+    clearApiKeyBtn.addEventListener("click", () => {
+      localStorage.removeItem("turnitout_gemini_api_key");
+      userApiKeyInput.value = "";
+      alert("API Key removed from browser storage.");
+      if (apiKeyModal) apiKeyModal.style.display = "none";
+    });
+  }
 });

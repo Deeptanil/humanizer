@@ -545,6 +545,78 @@ def capitalize_sentences(text: str) -> str:
     )
 
 
+def validate_and_clean_sentence(sent: str) -> str:
+    """
+    SentenceValidator™ Quality Gate (Ported & adapted from TextHumanize).
+    Enforces 10 structural and grammatical invariant checks on every sentence:
+    1. Duplicate consecutive words
+    2. Broken contractions and possessives
+    3. Orphaned or stacked punctuation
+    4. Double/dangling coordinating conjunctions
+    5. Unterminated parentheses or brackets
+    6. Triple-character repeated noise
+    7. Subject-less decoupled clauses
+    8. Whitespace around punctuation
+    9. Initial capitalization
+    10. Terminal punctuation integrity
+    """
+    s = sent.strip()
+    if not s or s.startswith(("#", "[Table", "1.", "2.", "3.", "4.", "5.", "6.", "7.", "8.", "9.")):
+        return s
+
+    # 1. Deduplicate consecutive identical words
+    s = re.sub(r"\b([A-Za-z]{2,})\s+\1\b", r"\1", s, flags=re.IGNORECASE)
+
+    # 2. Fix broken contractions and possessives
+    s = re.sub(r"\b([A-Za-z]+)\s+n't\b", r"\1n't", s, flags=re.IGNORECASE)
+    s = re.sub(r"\b([A-Za-z]+)\s+'(s|ve|re|ll|d|m)\b", r"\1'\2", s, flags=re.IGNORECASE)
+
+    # 3. Clean orphaned or stacked punctuation (e.g. ",.", ";.", ", ;")
+    s = re.sub(r"[,;:\s]+([.!?])", r"\1", s)
+    s = re.sub(r"[,;]{2,}", ",", s)
+
+    # 4. Clean double/dangling coordinating conjunctions
+    s = re.sub(r"\b(and|but)\s+(and|but|yet)\b", r"\1", s, flags=re.IGNORECASE)
+    s = re.sub(r"\b(also|beyond that)\s*[,;]?\s*(and|but)\b", r"\1", s, flags=re.IGNORECASE)
+
+    # 5. Fix unterminated parentheses or bracket artifacts
+    if s.count("(") > s.count(")"):
+        s += ")"
+    if s.count("[") > s.count("]") and not re.search(r"__PROT_\d+__", s):
+        s += "]"
+
+    # 6. Fix triple-character repeats
+    s = re.sub(r"([a-zA-Z])\1{2,}", r"\1\1", s)
+
+    # 7. Fix subject-less clauses resulting from sentence decoupling
+    s = re.sub(
+        r"^(Beyond that|At the same time|For this reason|Specifically),\s+(significantly|noticeably|greatly|directly|heavily)\s+",
+        r"\1, it \2 ",
+        s,
+        flags=re.IGNORECASE,
+    )
+    s = re.sub(
+        r"^(Beyond that|At the same time|For this reason),\s+(introduces|creates|eliminates|reduces|improves|requires|provides|defends|bolsters)\s+",
+        r"\1, it \2 ",
+        s,
+        flags=re.IGNORECASE,
+    )
+
+    # 8. Clean spaces before punctuation and excessive tabs/spaces
+    s = re.sub(r"[ \t]+([,.;:!?])", r"\1", s)
+    s = re.sub(r"[ \t]{2,}", " ", s)
+
+    # 9. Initial capitalization
+    if s and s[0].islower() and not s.startswith("http"):
+        s = s[0].upper() + s[1:]
+
+    # 10. Ensure terminal punctuation exists
+    if s and s[-1] not in ".!?:":
+        s += "."
+
+    return s
+
+
 def _postprocess_single_line(
     line: str,
     intensity: float,
@@ -586,6 +658,10 @@ def _postprocess_single_line(
     )
     text = re.sub(r"[ \t]+([,.;:!?])", r"\1", text)
     text = re.sub(r"[ \t]{2,}", " ", text)
+
+    # Run SentenceValidator™ Quality Gate across all sentences in the line
+    cleaned_sents = [validate_and_clean_sentence(s) for s in split_sentences(text)]
+    text = " ".join(s for s in cleaned_sents if s)
     return text.strip(), changes
 
 

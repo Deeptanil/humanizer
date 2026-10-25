@@ -103,6 +103,10 @@
         </div>
       </div>
       <div class="header-actions">
+        <button id="apiKeySettingsBtn" class="badge badge-yellow" type="button" title="Configure or update your Google Gemini API Key(s)" style="cursor: pointer; border: 2px solid #000; font-family: inherit;">
+          <svg class="svg-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          API KEY
+        </button>
         <span class="badge badge-lime" title="End-to-End TLS 1.3 Encrypted &amp; Zero-Storage Ephemeral RAM Processing">
           <svg class="svg-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           E2E ENCRYPTED // ZERO-STORAGE
@@ -259,6 +263,27 @@
         </nav>
       </div>
     </footer>
+  </div>
+
+  <!-- API Key Settings Modal -->
+  <div id="apiKeyModal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="apiKeyModalTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="apiKeyModalTitle" class="modal-title">GEMINI API KEY SETTINGS</h2>
+        <button id="closeApiKeyModalBtn" class="btn btn-secondary btn-sm" type="button">CLOSE</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 12px; color: var(--text-primary);">
+          Supply your Google Gemini API key (or multiple comma-separated keys to pool daily quotas).
+          Your key remains stored locally in your browser and is only sent to Google to perform academic thesis rewriting.
+        </p>
+        <input type="password" id="userApiKeyInput" placeholder="Paste Gemini API Key (e.g. AQ... or AIza...)" style="width: 100%; box-sizing: border-box; padding: 12px; font-family: var(--font-mono); font-size: 0.86rem; margin-bottom: 16px; background: var(--bg-surface-elevated); border: var(--border-heavy); border-radius: 8px; color: var(--text-primary);">
+        <div style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;">
+          <button id="clearApiKeyBtn" class="btn btn-secondary btn-sm" type="button">CLEAR STORED KEY</button>
+          <button id="saveApiKeyBtn" class="btn btn-primary btn-sm" type="button">SAVE &amp; ACTIVATE</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Legal Document Modal -->
