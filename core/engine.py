@@ -321,28 +321,42 @@ class HumanizerEngine:
 
         all_changes = []
 
-        # Stage 4: AI Clichés & Multi-word phrase rewrites
-        text, phrase_changes = self._apply_phrase_rewrites(text, intensity)
-        all_changes.extend(phrase_changes)
+        # Process line by line so paragraph breaks and headings are preserved
+        out_lines = []
+        for line in text.split('\n'):
+            stripped = line.strip()
+            # Leave blank lines and short headings (e.g. "1. Abstract") untouched
+            if not stripped or (len(stripped.split()) <= 8 and not stripped.endswith('.')) :
+                out_lines.append(line.rstrip())
+                continue
 
-        # Stage 5: Rotate transition markers
-        text, trans_changes = self._rotate_transitions(text, intensity)
-        all_changes.extend(trans_changes)
+            block = stripped
 
-        # Stage 6: Winnowing K-Gram Synonym Disruptor
-        text, syn_changes = self._apply_synonyms(text, intensity)
-        all_changes.extend(syn_changes)
+            # Stage 4: AI Clichés & Multi-word phrase rewrites
+            block, ch = self._apply_phrase_rewrites(block, intensity)
+            all_changes.extend(ch)
 
-        # Stage 7: Burstiness & Rhythm adjustment
-        text, burst_changes = self._tune_burstiness(text, intensity)
-        all_changes.extend(burst_changes)
+            # Stage 5: Rotate transition markers
+            block, ch = self._rotate_transitions(block, intensity)
+            all_changes.extend(ch)
+
+            # Stage 6: Winnowing K-Gram Synonym Disruptor
+            block, ch = self._apply_synonyms(block, intensity)
+            all_changes.extend(ch)
+
+            # Stage 7: Burstiness & Rhythm adjustment (within this paragraph only)
+            block, ch = self._tune_burstiness(block, intensity)
+            all_changes.extend(ch)
+
+            # Clean awkward spacing before punctuation (spaces only, never newlines)
+            block = re.sub(r'[ \t]+([,.:;?!])', r'\1', block)
+            block = re.sub(r'[ \t]{2,}', ' ', block)
+            out_lines.append(block)
+
+        text = '\n'.join(out_lines)
 
         # Stage 8: Restore citations and LaTeX equations
         text = self.protector.restore(text)
-
-        # Clean any awkward spacing before punctuation
-        text = re.sub(r'\s+([,.:;?!])', r'\1', text)
-        text = re.sub(r'\s{2,}', ' ', text)
 
         metrics_after = self.calculate_metrics(text)
 

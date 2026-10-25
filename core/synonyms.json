@@ -107,12 +107,6 @@
     "exploration",
     "study"
   ],
-  "study": [
-    "inquiry",
-    "investigation",
-    "scholarly work",
-    "analysis"
-  ],
   "studies": [
     "investigations",
     "analyses",
@@ -556,30 +550,6 @@
     "applying",
     "leveraging",
     "adopting"
-  ],
-  "use": [
-    "employ",
-    "apply",
-    "leverage",
-    "utilize"
-  ],
-  "used": [
-    "employed",
-    "applied",
-    "leveraged",
-    "utilized"
-  ],
-  "uses": [
-    "employs",
-    "applies",
-    "leverages",
-    "utilizes"
-  ],
-  "using": [
-    "employing",
-    "applying",
-    "leveraging",
-    "utilizing"
   ],
   "provide": [
     "furnish",
@@ -1109,18 +1079,6 @@
     "hurdles",
     "quandaries"
   ],
-  "problem": [
-    "issue",
-    "quandary",
-    "dilemma",
-    "difficulty"
-  ],
-  "problems": [
-    "issues",
-    "quandaries",
-    "dilemmas",
-    "difficulties"
-  ],
   "factor": [
     "element",
     "determinant",
@@ -1145,18 +1103,6 @@
     "elements",
     "attributes"
   ],
-  "method": [
-    "technique",
-    "procedure",
-    "protocol",
-    "modality"
-  ],
-  "methods": [
-    "techniques",
-    "procedures",
-    "protocols",
-    "modalities"
-  ],
   "methodology": [
     "framework",
     "procedural schema",
@@ -1175,18 +1121,6 @@
     "practices",
     "mechanisms"
   ],
-  "system": [
-    "architecture",
-    "framework",
-    "apparatus",
-    "network"
-  ],
-  "systems": [
-    "architectures",
-    "frameworks",
-    "mechanisms",
-    "networks"
-  ],
   "approach": [
     "modality",
     "framework",
@@ -1204,30 +1138,6 @@
     "scaffolding",
     "structure",
     "architecture"
-  ],
-  "model": [
-    "paradigm",
-    "representation",
-    "construct",
-    "framework"
-  ],
-  "models": [
-    "paradigms",
-    "representations",
-    "constructs",
-    "frameworks"
-  ],
-  "process": [
-    "procedure",
-    "workflow",
-    "mechanism",
-    "course of action"
-  ],
-  "processes": [
-    "procedures",
-    "workflows",
-    "mechanisms",
-    "operations"
   ],
   "result": [
     "outcome",
@@ -1253,23 +1163,11 @@
     "revelations",
     "results"
   ],
-  "data": [
-    "empirical evidence",
-    "observations",
-    "records",
-    "metrics"
-  ],
   "evidence": [
     "corroboration",
     "proof",
     "empirical support",
     "documentation"
-  ],
-  "paper": [
-    "manuscript",
-    "treatise",
-    "article",
-    "work"
   ],
   "article": [
     "manuscript",
@@ -1282,42 +1180,6 @@
     "scholarly inquiry",
     "exploration",
     "study"
-  ],
-  "field": [
-    "discipline",
-    "domain",
-    "arena",
-    "realm"
-  ],
-  "area": [
-    "sphere",
-    "domain",
-    "sector",
-    "field"
-  ],
-  "areas": [
-    "spheres",
-    "domains",
-    "sectors",
-    "fields"
-  ],
-  "domain": [
-    "realm",
-    "sphere",
-    "sector",
-    "discipline"
-  ],
-  "technology": [
-    "technological system",
-    "toolset",
-    "machinery",
-    "innovation"
-  ],
-  "technologies": [
-    "innovations",
-    "toolsets",
-    "systems",
-    "mechanisms"
   ],
   "perspective": [
     "viewpoint",
@@ -1445,12 +1307,6 @@
     "cardinal",
     "fundamental"
   ],
-  "key": [
-    "primary",
-    "principal",
-    "central",
-    "cardinal"
-  ],
   "major": [
     "prominent",
     "predominant",
@@ -1462,12 +1318,6 @@
     "principal",
     "foremost",
     "predominant"
-  ],
-  "main": [
-    "principal",
-    "central",
-    "foremost",
-    "chief"
   ],
   "central": [
     "focal",
