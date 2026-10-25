@@ -11,16 +11,38 @@ import time
 import requests
 from typing import List, Dict, Optional, Tuple, Any
 
-# Default ordered priority list (will be updated with user's exact model list or GEMINI_MODELS env var)
+# Default ordered priority list configured per user specification:
+# 1. Gemini 3.5 Flash Lite -> 2. Gemini 3.1 Flash Lite -> 3. Gemini 2.5 Flash Lite
+# -> 4. Gemini 3.6 Flash -> 5. Gemini 3.8 Flash
 DEFAULT_MODEL_PRIORITY: List[str] = [
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
     "gemini-2.5-flash-lite",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-pro",
-    "gemini-1.5-flash",
+    "gemini-2.5-flash",
+    "gemini-3.6-flash",
+    "gemini-3.8-flash",
 ]
+
+
+def _load_dotenv_if_present() -> None:
+    """Loads key=value pairs from .env in project root if not already in os.environ."""
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k, v = k.strip(), v.strip().strip('"').strip("'")
+                    if k and k not in os.environ:
+                        os.environ[k] = v
+        except Exception:
+            pass
+
+
+_load_dotenv_if_present()
 
 # Anti-Detection Academic Thesis System Prompt
 # Combines StealthHumanizer (burstiness + banned slop) + Moonlit-Pages (minimal-edit + >=100% word count)
@@ -79,8 +101,12 @@ class GeminiWaterfallRouter:
         self.dead_models: set = set()
 
     def get_api_keys(self) -> List[str]:
-        """Returns configured Gemini API key(s) from explicit config or environment."""
-        raw = self._explicit_api_key or os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GOOGLE_API_KEY", "")
+        """Returns configured Gemini API key(s) from explicit config or environment (.env / Vercel env)."""
+        if self._explicit_api_key is not None:
+            raw = self._explicit_api_key
+        else:
+            _load_dotenv_if_present()
+            raw = os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GOOGLE_API_KEY", "")
         keys = [k.strip() for k in raw.split(",") if k.strip()]
         return keys
 
@@ -110,6 +136,9 @@ class GeminiWaterfallRouter:
         name = name.strip()
         if name.startswith("models/"):
             name = name[len("models/") :]
+        # Convert human-readable display names like "Gemini 3.5 Flash Lite" -> "gemini-3.5-flash-lite"
+        if " " in name:
+            name = re.sub(r"\s+", "-", name.lower())
         return name
 
     @staticmethod

@@ -21,14 +21,42 @@ class DummyResponse:
 
 def test_multi_model_priority_waterfall_failover():
     """
-    Verify that GeminiWaterfallRouter tries models in strict priority order:
+    Verify that GeminiWaterfallRouter defaults to the exact 6-model priority order
+    and tries models in strict priority order on failover:
     Model 1 (429 rate limit) -> Model 2 (503 overloaded) -> Model 3 (404 not found) -> Model 4 (200 OK).
     """
+    default_router = GeminiWaterfallRouter()
+    assert default_router.get_model_priority() == [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-3.6-flash",
+        "gemini-3.8-flash",
+    ]
+    # Also verify display name normalization
+    default_router.set_model_priority([
+        "Gemini 3.5 Flash Lite",
+        "Gemini 3.1 Flash Lite",
+        "Gemini 2.5 Flash Lite",
+        "Gemini 2.5 Flash",
+        "Gemini 3.6 Flash",
+        "Gemini 3.8 Flash",
+    ])
+    assert default_router.get_model_priority() == [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
+        "gemini-3.6-flash",
+        "gemini-3.8-flash",
+    ]
+
     priority_list = [
-        "gemini-model-priority-1",
-        "gemini-model-priority-2",
-        "gemini-model-priority-3",
-        "gemini-model-priority-4",
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash",
     ]
     router = GeminiWaterfallRouter(api_key="test-key-123", model_priority=priority_list)
 
@@ -49,13 +77,13 @@ def test_multi_model_priority_waterfall_failover():
         model_part = url.split("/models/")[1].split(":")[0]
         call_order.append(model_part)
 
-        if model_part == "gemini-model-priority-1":
+        if model_part == "gemini-3.5-flash-lite":
             return DummyResponse(429, text="Quota exceeded")
-        if model_part == "gemini-model-priority-2":
+        if model_part == "gemini-3.1-flash-lite":
             return DummyResponse(503, text="Model overloaded")
-        if model_part == "gemini-model-priority-3":
+        if model_part == "gemini-2.5-flash-lite":
             return DummyResponse(404, text="Model not found")
-        if model_part == "gemini-model-priority-4":
+        if model_part == "gemini-2.5-flash":
             return DummyResponse(
                 200,
                 json_data={
@@ -70,11 +98,11 @@ def test_multi_model_priority_waterfall_failover():
         res = router.rewrite_with_waterfall(input_paragraph, intensity=0.8)
 
     assert res["success"] is True
-    assert res["model_used"] == "gemini-model-priority-4"
+    assert res["model_used"] == "gemini-2.5-flash"
     assert call_order == priority_list
-    assert "gemini-model-priority-3" in router.dead_models
-    assert "gemini-model-priority-1" in router.cooldown_until
-    assert "gemini-model-priority-2" in router.cooldown_until
+    assert "gemini-2.5-flash-lite" in router.dead_models
+    assert "gemini-3.5-flash-lite" in router.cooldown_until
+    assert "gemini-3.1-flash-lite" in router.cooldown_until
 
 
 def test_waterfall_rejects_word_count_shrinkage():
