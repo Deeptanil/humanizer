@@ -392,6 +392,55 @@ input[type="range"]::-moz-range-thumb {
 .badge-lime   { background: var(--comic-lime);   color: #000000; }
 .badge-purple { background: var(--comic-purple); color: #FFFFFF; }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Streaming Progress Bar Card */
+.progress-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: var(--bg-surface-elevated);
+  border: var(--border-heavy);
+  border-radius: var(--radius-comic);
+  padding: 1rem 1.4rem;
+  box-shadow: var(--shadow-3d);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.progress-title {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--comic-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.progress-track {
+  width: 100%;
+  height: 16px;
+  background-color: #000000;
+  border: 3px solid #000000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--comic-lime);
+  transition: width 0.25s ease;
+}
+
 /* Metrics Bar */
 .metrics-bar {
   display: grid;

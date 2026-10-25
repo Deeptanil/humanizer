@@ -21,10 +21,14 @@
         </div>
         <div>
           <h1 class="logo-title">Academic Thesis Humanizer</h1>
-          <p class="logo-subtitle">Zero-AI // 100% Deterministic Similarity &amp; Watermark Evader</p>
+          <p class="logo-subtitle">Multi-Model Waterfall // 10,000+ Word Full-Thesis Anti-Detection Engine</p>
         </div>
       </div>
       <div class="header-actions">
+        <span id="activeModelBadge" class="badge badge-cyan" title="Current Priority Model Status">
+          <svg class="svg-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          ENGINE READY
+        </span>
         <button id="themeToggleBtn" class="btn btn-secondary btn-sm" title="Toggle Theme">
           <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           THEME
@@ -37,11 +41,11 @@
       <div class="studio-controls">
         <div class="control-group">
           <label for="intensitySlider" class="control-label">
-            Evasion Intensity: <span id="intensityLabel" class="badge badge-yellow">Balanced (65%)</span>
+            Evasion Intensity: <span id="intensityLabel" class="badge badge-yellow">Aggressive (85%)</span>
           </label>
           <div class="slider-wrapper">
             <span class="slider-hint">Subtle</span>
-            <input type="range" id="intensitySlider" min="20" max="95" value="65" step="5">
+            <input type="range" id="intensitySlider" min="20" max="95" value="85" step="5">
             <span class="slider-hint">Aggressive</span>
           </div>
         </div>
@@ -61,6 +65,17 @@
         </div>
       </div>
 
+      <!-- Streaming Progress HUD (10,000+ Word Chunker) -->
+      <div id="progressContainer" class="progress-card" style="display: none;">
+        <div class="progress-header">
+          <span id="progressStatusText" class="progress-title">SPLITTING DOCUMENT INTO PARAGRAPH CHUNKS...</span>
+          <span id="progressChunkBadge" class="badge badge-yellow">CHUNK 0 / 0</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressBarFill" class="progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
       <!-- Metrics HUD Bar -->
       <div id="metricsBar" class="metrics-bar" style="display: none;">
         <div class="metric-card">
@@ -68,20 +83,20 @@
           <div class="metric-value-row">
             <span id="metricAiBefore" class="badge badge-pink">90%</span>
             <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-            <span id="metricAiAfter" class="badge badge-lime">25%</span>
+            <span id="metricAiAfter" class="badge badge-lime">12%</span>
           </div>
         </div>
         <div class="metric-card">
+          <span class="metric-title">Burstiness Index</span>
+          <span id="metricBurstiness" class="metric-stat">0%</span>
+        </div>
+        <div class="metric-card">
           <span class="metric-title">AI Clichés Purged</span>
-          <span id="metricCliches" class="metric-stat">0</span>
+          <span id="metricCliches" class="metric-stat">0 purged</span>
         </div>
         <div class="metric-card">
-          <span class="metric-title">Hidden Watermarks</span>
-          <span id="metricWatermarks" class="metric-stat">0 Purged</span>
-        </div>
-        <div class="metric-card">
-          <span class="metric-title">N-Gram Shifts</span>
-          <span id="metricChanges" class="metric-stat">0</span>
+          <span class="metric-title">Structural Shifts</span>
+          <span id="metricChanges" class="metric-stat">0 shifts</span>
         </div>
       </div>
 
@@ -89,15 +104,15 @@
       <div class="editor-grid">
         <div class="editor-pane">
           <div class="pane-header">
-            <span>Original Draft (Google Docs / Thesis Text)</span>
+            <span>Original Draft (Paste Up To 15,000+ Words)</span>
             <span id="inputWordCount" class="word-counter">0 words</span>
           </div>
-          <textarea id="inputText" placeholder="Paste your thesis chapter, abstract, methodology, or discussion here..."></textarea>
+          <textarea id="inputText" placeholder="Paste your full thesis, chapters, abstract, methodology, or discussion here..."></textarea>
         </div>
 
         <div class="editor-pane">
           <div class="pane-header">
-            <span>Humanized Result (Citations &amp; Equations Intact)</span>
+            <span>Humanized Result (Headings, Citations &amp; Technical Terms Intact)</span>
             <div class="pane-tools">
               <span id="outputWordCount" class="word-counter">0 words</span>
               <button id="copyBtn" class="btn btn-accent btn-sm">
@@ -106,14 +121,14 @@
               </button>
             </div>
           </div>
-          <textarea id="outputText" readonly placeholder="Humanized text will appear here with zero generative AI footprint..."></textarea>
+          <textarea id="outputText" readonly placeholder="Humanized text streams here chunk-by-chunk with high burstiness and zero AI footprint..."></textarea>
         </div>
       </div>
     </main>
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span>Turnitout Academic Engine v2.6 // 100% Deterministic &amp; Private // Zero Generative AI</span>
+      <span>Turnitout Academic Engine v3.0 // Multi-Model Priority Waterfall + 3-Layer Adversarial Burstiness Pipeline</span>
     </footer>
   </div>
 

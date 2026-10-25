@@ -1,19 +1,26 @@
 """
-Turnitout Humanizer Core Engine
-Zero-AI, 100% deterministic rule-based evasion engine.
-Disrupts Turnitin Winnowing k-grams and AI detector statistical signatures.
+Turnitout Hybrid 3-Layer Humanizer Engine (v3.0)
+Combines:
+- Layer 1: Google Gemini Multi-Model Priority Waterfall (structural sentence rewriting)
+- Layer 2: StealthHumanizer + Moonlit-Pages Deterministic Post-Processor (collocations, em-dashes, burstiness)
+- Layer 3: Multi-Metric Statistical AI Detector + Adversarial Retry Loop
+- Smart Chunker: Supports 10,000+ word theses without context shrinkage or timeout
 """
 
 import os
 import json
 import re
 import random
-import math
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Optional
 
 from .cleaner import WatermarkSanitizer, TokenProtector
+from .detector import analyze_ai_Footprint
+from .postprocess import deterministic_postprocess
+from .chunker import chunk_document, is_heading_line
+from .gemini_waterfall import GeminiWaterfallRouter
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def _load_json(filename: str):
     path = os.path.join(BASE_DIR, filename)
@@ -22,25 +29,45 @@ def _load_json(filename: str):
             return json.load(f)
     return {}
 
+
 PHRASES = _load_json("phrases.json")
 SYNONYMS = _load_json("synonyms.json")
 TRANSITIONS = _load_json("transitions.json")
 
+# Protected technical & domain words that should never be blindly swapped by dictionary fallback
+PROTECTED_WORDS = {
+    "data", "system", "systems", "model", "models", "method", "methods",
+    "problem", "problems", "study", "paper", "code", "file", "files",
+    "network", "networks", "server", "servers", "token", "tokens",
+    "user", "users", "state", "memory", "disk", "web", "lab", "key",
+    "keys", "hash", "table", "tables", "figure", "figures", "section",
+    "chapter", "abstract", "index", "value", "values", "time", "type",
+}
+
+
 class HumanizerEngine:
-    def __init__(self, seed: int = None):
-        if seed is not None:
-            self.rng = random.Random(seed)
-        else:
-            self.rng = random.Random()
+    def __init__(
+        self,
+        seed: Optional[int] = None,
+        api_key: Optional[str] = None,
+        model_priority: Optional[List[str]] = None,
+    ):
+        self.rng = random.Random(seed) if seed is not None else random.Random()
         self.sanitizer = WatermarkSanitizer()
         self.protector = TokenProtector()
+        self.waterfall = GeminiWaterfallRouter(api_key=api_key, model_priority=model_priority)
         self.used_transitions = set()
 
-    def set_seed(self, seed: int):
+    def set_seed(self, seed: int) -> None:
         self.rng = random.Random(seed)
 
+    def set_api_key(self, api_key: str) -> None:
+        self.waterfall.set_api_key(api_key)
+
+    def set_model_priority(self, models: List[str]) -> None:
+        self.waterfall.set_model_priority(models)
+
     def _preserve_case(self, original: str, replacement: str) -> str:
-        """Transfers capitalization pattern from original to replacement."""
         if original.isupper():
             return replacement.upper()
         if original and original[0].isupper():
@@ -48,66 +75,51 @@ class HumanizerEngine:
         return replacement.lower()
 
     def _get_synonyms_for_word(self, word: str) -> List[str]:
-        """Looks up synonyms including plural, past tense, and -ing inflections."""
         lower = word.lower()
+        if lower in PROTECTED_WORDS or len(lower) <= 3:
+            return []
         if lower in SYNONYMS:
             return SYNONYMS[lower]
-        
-        # Plural -s
-        if lower.endswith('s') and len(lower) > 3:
-            root = lower[:-1]
-            if root in SYNONYMS:
-                return [s + 's' if not s.endswith(('s', 'sh', 'ch', 'x', 'z')) else s + 'es' for s in SYNONYMS[root]]
-        
-        # Plural -es
-        if lower.endswith('es') and len(lower) > 4:
-            root = lower[:-2]
-            if root in SYNONYMS:
-                return [s + 'es' for s in SYNONYMS[root]]
-        
-        # Past tense -ed
-        if lower.endswith('ed') and len(lower) > 4:
-            root = lower[:-2]
-            if root in SYNONYMS:
-                return [s + 'ed' if not s.endswith('e') else s + 'd' for s in SYNONYMS[root]]
-            root_e = lower[:-1]  # like 'created' -> 'create'
-            if root_e in SYNONYMS:
-                return [s + 'ed' if not s.endswith('e') else s + 'd' for s in SYNONYMS[root_e]]
 
-        # Participle -ing
-        if lower.endswith('ing') and len(lower) > 5:
-            root_e = lower[:-3] + 'e'  # like 'analyzing' -> 'analyze'
-            if root_e in SYNONYMS:
-                return [s[:-1] + 'ing' if s.endswith('e') else s + 'ing' for s in SYNONYMS[root_e]]
+        if lower.endswith("s") and len(lower) > 4:
+            root = lower[:-1]
+            if root not in PROTECTED_WORDS and root in SYNONYMS:
+                return [s + "s" if not s.endswith(("s", "sh", "ch", "x", "z")) else s + "es" for s in SYNONYMS[root]]
+
+        if lower.endswith("ed") and len(lower) > 5:
+            root = lower[:-2]
+            if root not in PROTECTED_WORDS and root in SYNONYMS:
+                return [s + "ed" if not s.endswith("e") else s + "d" for s in SYNONYMS[root]]
+            root_e = lower[:-1]
+            if root_e not in PROTECTED_WORDS and root_e in SYNONYMS:
+                return [s + "ed" if not s.endswith("e") else s + "d" for s in SYNONYMS[root_e]]
+
+        if lower.endswith("ing") and len(lower) > 6:
+            root_e = lower[:-3] + "e"
+            if root_e not in PROTECTED_WORDS and root_e in SYNONYMS:
+                return [s[:-1] + "ing" if s.endswith("e") else s + "ing" for s in SYNONYMS[root_e]]
             root = lower[:-3]
-            if root in SYNONYMS:
-                return [s[:-1] + 'ing' if s.endswith('e') else s + 'ing' for s in SYNONYMS[root]]
+            if root not in PROTECTED_WORDS and root in SYNONYMS:
+                return [s[:-1] + "ing" if s.endswith("e") else s + "ing" for s in SYNONYMS[root]]
 
         return []
 
     def _apply_phrase_rewrites(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
-        """Replaces known AI cliché phrases and multi-word triggers."""
         changes = []
-        # Higher intensity = near 100% replacement rate for cliches
-        fire_rate = min(0.98, 0.75 + (0.25 * intensity))
+        fire_rate = min(0.98, 0.78 + (0.22 * intensity))
 
         for item in PHRASES:
-            if isinstance(item, list) and len(item) == 2:
-                pattern_str, repl = item[0], item[1]
-            else:
+            if not (isinstance(item, list) and len(item) == 2):
                 continue
-
+            pattern_str, repl = item[0], item[1]
             if self.rng.random() > fire_rate:
                 continue
 
             pattern = re.compile(pattern_str, re.IGNORECASE)
             matches = list(pattern.finditer(text))
-            if not matches:
-                continue
-
             for match in reversed(matches):
                 orig_text = match.group(0)
-                if "\uE000" in orig_text or "\uE001" in orig_text:
+                if "__PROT_" in orig_text:
                     continue
                 formatted_repl = self._preserve_case(orig_text, repl)
                 start, end = match.span()
@@ -115,26 +127,23 @@ class HumanizerEngine:
                 changes.append({
                     "type": "phrase_cliche",
                     "original": orig_text,
-                    "replacement": formatted_repl
+                    "replacement": formatted_repl,
                 })
         return text, changes
 
     def _rotate_transitions(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
-        """Rotates overused transition markers to increase discourse variety."""
         changes = []
         fire_rate = min(0.95, 0.70 + (0.30 * intensity))
 
-        for category, markers in TRANSITIONS.items():
+        for _, markers in TRANSITIONS.items():
             for marker, alternatives in markers.items():
-                pattern = re.compile(r'\b' + re.escape(marker) + r'\b', re.IGNORECASE)
+                pattern = re.compile(r"\b" + re.escape(marker) + r"\b", re.IGNORECASE)
                 matches = list(pattern.finditer(text))
                 for match in reversed(matches):
                     if self.rng.random() > fire_rate:
                         continue
                     orig = match.group(0)
-                    avail = [a for a in alternatives if a not in self.used_transitions]
-                    if not avail:
-                        avail = alternatives
+                    avail = [a for a in alternatives if a not in self.used_transitions] or alternatives
                     chosen = self.rng.choice(avail)
                     self.used_transitions.add(chosen)
                     if len(self.used_transitions) > 15:
@@ -146,21 +155,25 @@ class HumanizerEngine:
                     changes.append({
                         "type": "transition_rotation",
                         "original": orig,
-                        "replacement": formatted
+                        "replacement": formatted,
                     })
         return text, changes
 
-    def _apply_synonyms(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
-        """
-        Disrupts Winnowing 5-word k-gram chains by substituting scholarly synonyms
-        in-place without altering whitespace, punctuation or protected markers.
-        """
+    def _apply_synonyms(self, text: str, intensity: float, llm_was_used: bool = False) -> Tuple[str, List[Dict[str, str]]]:
         changes = []
-        # Swap probability: subtle ~ 0.40, balanced ~ 0.65, aggressive ~ 0.85
-        swap_prob = 0.35 + (intensity * 0.50)
+        # When Gemini LLM already rewrote the structure, only apply light synonym polishing (12-20%)
+        # When running in offline fallback mode, apply stronger synonym disruption (35-65%)
+        swap_prob = (0.08 + intensity * 0.14) if llm_was_used else (0.32 + intensity * 0.38)
 
         def _sub_word(match):
             word = match.group(0)
+            # Never touch capitalized mid-sentence proper nouns or acronyms (e.g. FileGuard, CIDR)
+            start_pos = match.start()
+            if start_pos > 0 and word[0].isupper():
+                prev_slice = text[max(0, start_pos - 3) : start_pos]
+                if not re.search(r"[.!?]\s*$", prev_slice):
+                    return word
+
             syns = self._get_synonyms_for_word(word)
             if syns and self.rng.random() < swap_prob:
                 chosen = self.rng.choice(syns)
@@ -168,204 +181,153 @@ class HumanizerEngine:
                 changes.append({
                     "type": "synonym_swap",
                     "original": word,
-                    "replacement": formatted
+                    "replacement": formatted,
                 })
                 return formatted
             return word
 
-        parts = re.split(r'(\uE000[^\uE001]+\uE001)', text)
+        parts = re.split(r"(__PROT_\d+__)", text)
         for i in range(len(parts)):
-            if not parts[i].startswith('\uE000'):
-                parts[i] = re.sub(r'\b[A-Za-z]+\b', _sub_word, parts[i])
+            if not parts[i].startswith("__PROT_"):
+                parts[i] = re.sub(r"\b[A-Za-z]+\b", _sub_word, parts[i])
 
         return "".join(parts), changes
 
-    def _tune_burstiness(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
-        """
-        Adjusts sentence length variance (burstiness).
-        Combines adjacent short sentences with academic subordinating conjunctions.
-        """
-        changes = []
-        if intensity < 0.35:
-            return text, changes
-
-        sentences = re.split(r'(?<=[.!?])\s+', text)
-        if len(sentences) < 2:
-            return text, changes
-
-        conjunctions = [
-            ", which consequently ",
-            ", thereby ",
-            ", ultimately leading to ",
-            ", whereas ",
-            "; in doing so, it "
-        ]
-
-        fused = []
-        skip_next = False
-
-        for i in range(len(sentences)):
-            if skip_next:
-                skip_next = False
-                continue
-
-            current_s = sentences[i].strip()
-            if i + 1 < len(sentences):
-                next_s = sentences[i + 1].strip()
-                if "\uE000" in current_s or "\uE000" in next_s:
-                    fused.append(current_s)
-                    continue
-
-                if len(current_s) < 90 and len(next_s) < 90 and current_s.endswith('.'):
-                    if self.rng.random() < (0.35 * intensity):
-                        connector = self.rng.choice(conjunctions)
-                        trimmed_curr = current_s[:-1]
-                        lower_next = next_s[0].lower() + next_s[1:]
-                        combined = f"{trimmed_curr}{connector}{lower_next}"
-                        fused.append(combined)
-                        changes.append({
-                            "type": "sentence_fusion",
-                            "original": f"{current_s} {next_s}",
-                            "replacement": combined
-                        })
-                        skip_next = True
-                        continue
-
-            fused.append(current_s)
-
-        return " ".join(fused), changes
-
     def calculate_metrics(self, text: str) -> Dict[str, Any]:
+        return analyze_ai_Footprint(text)
+
+    def _process_single_paragraph(
+        self,
+        paragraph: str,
+        intensity: float,
+    ) -> Tuple[str, List[Dict[str, str]], Optional[str], List[Dict[str, Any]]]:
         """
-        Estimates entropic perplexity, sentence burstiness, and AI detection risk score.
+        Processes a single non-heading prose paragraph through Layer 1 (Gemini Waterfall),
+        Layer 2 (Deterministic Post-Processor), and Layer 3 (Adversarial Self-Check).
         """
-        if not text.strip():
-            return {"words": 0, "ai_risk": 0, "burstiness": 0, "cliche_count": 0, "vocabulary_diversity": 0}
+        all_changes: List[Dict[str, str]] = []
+        model_used: Optional[str] = None
+        attempts_log: List[Dict[str, Any]] = []
 
-        words = re.findall(r'\b[A-Za-z0-9\'-]+\b', text)
-        word_count = len(words)
-        if word_count == 0:
-            return {"words": 0, "ai_risk": 0, "burstiness": 0, "cliche_count": 0, "vocabulary_diversity": 0}
+        block = paragraph
 
-        # 1. Cliché score
-        cliche_matches = 0
-        for item in PHRASES:
-            if isinstance(item, list) and len(item) == 2:
-                pattern_str = item[0]
-                cliche_matches += len(re.findall(pattern_str, text, re.IGNORECASE))
+        # Layer 1: Gemini Multi-Model Priority Waterfall (if API key is configured)
+        if self.waterfall.get_api_keys():
+            wf_res = self.waterfall.rewrite_with_waterfall(block, intensity=intensity)
+            attempts_log.extend(wf_res.get("attempts", []))
+            if wf_res.get("success") and wf_res.get("text"):
+                block = wf_res["text"]
+                model_used = wf_res.get("model_used")
+                all_changes.append({
+                    "type": "llm_structural_rewrite",
+                    "original": f"Paragraph ({len(paragraph.split())}w)",
+                    "replacement": f"Rewritten via {model_used} ({len(block.split())}w)",
+                })
 
-        # 2. Burstiness (standard deviation of sentence length in words)
-        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
-        sentence_lens = [len(s.split()) for s in sentences if s.split()]
-        if len(sentence_lens) > 1:
-            mean_len = sum(sentence_lens) / len(sentence_lens)
-            variance = sum((x - mean_len) ** 2 for x in sentence_lens) / (len(sentence_lens) - 1)
-            burstiness = math.sqrt(variance)
-        else:
-            burstiness = 0.0
+        # Layer 2: Deterministic Post-Processor (StealthHumanizer + Moonlit-Pages)
+        block, det_changes = deterministic_postprocess(block, intensity=intensity, rng=self.rng)
+        all_changes.extend(det_changes)
 
-        # 3. Vocabulary diversity (Type-Token Ratio)
-        unique_words = len(set(w.lower() for w in words))
-        ttr = unique_words / word_count if word_count > 0 else 0
+        block, phrase_changes = self._apply_phrase_rewrites(block, intensity)
+        all_changes.extend(phrase_changes)
 
-        # Base risk calculation
-        base_risk = 55.0
-        base_risk += min(45.0, cliche_matches * 9.0)
-        if burstiness < 4.0:
-            base_risk += 18.0
-        elif burstiness > 8.0:
-            base_risk -= 18.0
+        block, trans_changes = self._rotate_transitions(block, intensity)
+        all_changes.extend(trans_changes)
 
-        if ttr > 0.65:
-            base_risk -= 15.0
-        elif ttr < 0.40:
-            base_risk += 12.0
+        block, syn_changes = self._apply_synonyms(block, intensity, llm_was_used=(model_used is not None))
+        all_changes.extend(syn_changes)
 
-        ai_risk = max(8, min(96, int(base_risk)))
+        # Layer 3: Adversarial Self-Check Loop
+        # If Gemini is active and the paragraph's AI risk is still > 32%, run a targeted 2nd pass
+        if model_used is not None:
+            post_metrics = self.calculate_metrics(block)
+            if post_metrics["ai_risk"] > 32 and len(block.split()) >= 25:
+                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence length"
+                extra = (
+                    f"The previous draft still scored {post_metrics['ai_risk']}% AI risk due to: {flagged}. "
+                    "Insert at least two short 5-7 word declarative sentences, vary sentence openings, "
+                    "and remove all remaining formal transitions while keeping 100% of the facts and length."
+                )
+                wf_retry = self.waterfall.rewrite_with_waterfall(block, intensity=min(0.95, intensity + 0.15), extra_instructions=extra)
+                attempts_log.extend(wf_retry.get("attempts", []))
+                if wf_retry.get("success") and wf_retry.get("text"):
+                    candidate, cand_changes = deterministic_postprocess(wf_retry["text"], intensity=intensity, rng=self.rng)
+                    cand_metrics = self.calculate_metrics(candidate)
+                    if cand_metrics["ai_risk"] <= post_metrics["ai_risk"]:
+                        block = candidate
+                        model_used = wf_retry.get("model_used") or model_used
+                        all_changes.extend(cand_changes)
+                        all_changes.append({
+                            "type": "adversarial_pass_2",
+                            "original": f"Risk {post_metrics['ai_risk']}%",
+                            "replacement": f"Risk {cand_metrics['ai_risk']}% ({model_used})",
+                        })
 
-        return {
-            "words": word_count,
-            "ai_risk": ai_risk,
-            "burstiness": round(burstiness, 2),
-            "cliche_count": cliche_matches,
-            "vocabulary_diversity": round(ttr * 100, 1)
-        }
+        return block, all_changes, model_used, attempts_log
 
-    def process(self, raw_text: str, intensity: float = 0.6) -> Dict[str, Any]:
+    def process(self, raw_text: str, intensity: float = 0.65) -> Dict[str, Any]:
         """
-        Runs the full 8-stage humanization pipeline.
-        Intensity: 0.2 (Subtle) to 1.0 (Maximum Evasion).
+        Runs the full 3-layer humanization pipeline across any length of text.
+        Preserves line breaks, headings, citations, and technical terms.
         """
         if not raw_text or not raw_text.strip():
+            empty_m = self.calculate_metrics("")
             return {
                 "cleaned_text": "",
                 "watermarks_found": 0,
+                "watermark_details": {},
                 "changes_count": 0,
                 "changes": [],
-                "metrics_before": self.calculate_metrics(""),
-                "metrics_after": self.calculate_metrics("")
+                "model_used": None,
+                "waterfall_attempts": [],
+                "metrics_before": empty_m,
+                "metrics_after": empty_m,
             }
 
         metrics_before = self.calculate_metrics(raw_text)
 
-        # Stage 1: Inspect and strip invisible zero-width watermarks
+        # Stage 1: Strip invisible zero-width watermarks
         inspect_result = self.sanitizer.inspect(raw_text)
         text = self.sanitizer.strip(raw_text)
 
         # Stage 2: Protect citations and equations
         text = self.protector.protect(text)
 
-        # Stage 3: Normalize em-dashes and spacing
-        text = text.replace("—", ", ").replace(" - ", ", ")
-        text = re.sub(r'[ \t]+', ' ', text)
+        all_changes: List[Dict[str, str]] = []
+        models_used: List[str] = []
+        waterfall_attempts: List[Dict[str, Any]] = []
 
-        all_changes = []
-
-        # Process line by line so paragraph breaks and headings are preserved
-        out_lines = []
-        for line in text.split('\n'):
+        # Process line-by-line so headings and paragraph breaks are 100% preserved
+        out_lines: List[str] = []
+        for line in text.split("\n"):
             stripped = line.strip()
-            # Leave blank lines and short headings (e.g. "1. Abstract") untouched
-            if not stripped or (len(stripped.split()) <= 8 and not stripped.endswith('.')) :
+            if not stripped or is_heading_line(stripped):
                 out_lines.append(line.rstrip())
                 continue
 
-            block = stripped
-
-            # Stage 4: AI Clichés & Multi-word phrase rewrites
-            block, ch = self._apply_phrase_rewrites(block, intensity)
+            rewritten_line, ch, m_used, att = self._process_single_paragraph(stripped, intensity)
             all_changes.extend(ch)
+            if m_used:
+                models_used.append(m_used)
+            waterfall_attempts.extend(att)
+            out_lines.append(rewritten_line)
 
-            # Stage 5: Rotate transition markers
-            block, ch = self._rotate_transitions(block, intensity)
-            all_changes.extend(ch)
+        final_text = "\n".join(out_lines)
 
-            # Stage 6: Winnowing K-Gram Synonym Disruptor
-            block, ch = self._apply_synonyms(block, intensity)
-            all_changes.extend(ch)
+        # Restore protected citations and math equations
+        final_text = self.protector.restore(final_text)
 
-            # Stage 7: Burstiness & Rhythm adjustment (within this paragraph only)
-            block, ch = self._tune_burstiness(block, intensity)
-            all_changes.extend(ch)
-
-            # Clean awkward spacing before punctuation (spaces only, never newlines)
-            block = re.sub(r'[ \t]+([,.:;?!])', r'\1', block)
-            block = re.sub(r'[ \t]{2,}', ' ', block)
-            out_lines.append(block)
-
-        text = '\n'.join(out_lines)
-
-        # Stage 8: Restore citations and LaTeX equations
-        text = self.protector.restore(text)
-
-        metrics_after = self.calculate_metrics(text)
+        metrics_after = self.calculate_metrics(final_text)
+        primary_model = models_used[0] if models_used else "deterministic-fallback"
 
         return {
-            "cleaned_text": text.strip(),
+            "cleaned_text": final_text.strip(),
             "watermarks_found": inspect_result["total_watermarks"],
             "watermark_details": inspect_result["details"],
             "changes_count": len(all_changes),
             "changes": all_changes,
+            "model_used": primary_model,
+            "waterfall_attempts": waterfall_attempts,
             "metrics_before": metrics_before,
-            "metrics_after": metrics_after
+            "metrics_after": metrics_after,
         }

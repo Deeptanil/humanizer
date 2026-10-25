@@ -17,18 +17,25 @@ document.addEventListener("DOMContentLoaded", () => {
   const copyBtn = document.getElementById("copyBtn");
   const inputWordCount = document.getElementById("inputWordCount");
   const outputWordCount = document.getElementById("outputWordCount");
+  const activeModelBadge = document.getElementById("activeModelBadge");
+
+  // Progress HUD
+  const progressContainer = document.getElementById("progressContainer");
+  const progressStatusText = document.getElementById("progressStatusText");
+  const progressChunkBadge = document.getElementById("progressChunkBadge");
+  const progressBarFill = document.getElementById("progressBarFill");
 
   // Metrics
   const metricsBar = document.getElementById("metricsBar");
   const metricAiBefore = document.getElementById("metricAiBefore");
   const metricAiAfter = document.getElementById("metricAiAfter");
+  const metricBurstiness = document.getElementById("metricBurstiness");
   const metricCliches = document.getElementById("metricCliches");
-  const metricWatermarks = document.getElementById("metricWatermarks");
   const metricChanges = document.getElementById("metricChanges");
 
-  // SVGs for dynamic buttons
+  // SVGs for dynamic buttons (Strict Zero-Emoji Policy)
   const LIGHTNING_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-  const COPY_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const PULSE_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
   const CHECK_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
 
   // Intensity Slider Label
@@ -49,8 +56,12 @@ document.addEventListener("DOMContentLoaded", () => {
     inputWordCount.textContent = `${countWords(inputText.value)} words`;
   });
 
-  // Realistic Thesis Sample (Zero Emojis)
-  const SAMPLE_THESIS = `The rapid advancement of artificial intelligence has revolutionized many industries. However, there are still many challenges that need to be addressed. In this paper, we explore several solutions to improve the accuracy and efficiency of modern systems. Furthermore, our findings indicate that traditional methods are no longer sufficient [1]. Therefore, this study plays a pivotal role in illustrating the need for novel frameworks to foster a deeper understanding of computational scalability.`;
+  // Realistic Technical & Academic Thesis Sample
+  const SAMPLE_THESIS = `1. Abstract & Problem Statement
+Temporary file transmission across open networks presents critical security vulnerabilities: persistent data exposure on remote servers, silent data corruption (bit-rot or malicious in-flight modification), unauthorized token enumeration, and intrusive user tracking. Furthermore, traditional cloud architectures play a pivotal role in exacerbating these risks by retaining unencrypted metadata, highlighting the urgent need for a paradigm shift. FileGuard is an academic and production-engineered web platform providing zero-knowledge temporary file sharing [1]. It implements a strict 12-hour self-destruct lifecycle, pre-flight SHA-256 cryptographic verification, in-memory folder ZIP bundling, CIDR-masked subnet quota controls, and a digital forensics inspection lab, thereby ensuring comprehensive end-to-end security.
+
+2. Architectural Overview & Subsystem Specifications
+The system coordinates web routing, object storage, and relational state without disk bottlenecks or unencrypted staging leaks. Moreover, it is important to note that conventional file-transfer services rely heavily on persistent staging volumes, creating a complex landscape of attack vectors.`;
 
   loadSampleBtn.addEventListener("click", () => {
     inputText.value = SAMPLE_THESIS;
@@ -63,9 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     inputWordCount.textContent = "0 words";
     outputWordCount.textContent = "0 words";
     metricsBar.style.display = "none";
+    progressContainer.style.display = "none";
   });
 
-  // Humanize Action
+  // Multi-Chunk 10,000+ Word Streaming Humanizer
   humanizeBtn.addEventListener("click", async () => {
     const text = inputText.value.trim();
     if (!text) {
@@ -74,35 +86,111 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     humanizeBtn.disabled = true;
-    humanizeBtn.innerHTML = `${LIGHTNING_SVG} TRANSFORMING TEXT...`;
+    humanizeBtn.innerHTML = `${LIGHTNING_SVG} HUMANIZING THESIS...`;
+    outputText.value = "";
+    outputWordCount.textContent = "0 words";
+
+    progressContainer.style.display = "flex";
+    progressBarFill.style.width = "5%";
+    progressStatusText.textContent = "ANALYZING & SPLITTING DOCUMENT INTO PARAGRAPH CHUNKS...";
+    progressChunkBadge.textContent = "PREPARING";
 
     try {
       const intensity = parseInt(intensitySlider.value, 10) / 100.0;
-      const res = await fetch("/api/humanize", {
+
+      // Step 1: Split document into safe ~260-word chunks + get baseline AI risk
+      const chunkRes = await fetch("/api/chunk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, intensity })
+        body: JSON.stringify({ text, max_words_per_chunk: 260 })
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned status ${res.status}`);
+      if (!chunkRes.ok) {
+        throw new Error(`Chunking server error (${chunkRes.status})`);
       }
 
-      const data = await res.json();
+      const chunkData = await chunkRes.json();
+      const chunks = chunkData.chunks || [text];
+      const totalChunks = chunks.length;
+      const metricsBefore = chunkData.metrics_before;
 
-      outputText.value = data.cleaned_text;
-      outputWordCount.textContent = `${countWords(data.cleaned_text)} words`;
-
-      // Update metrics HUD
-      metricAiBefore.textContent = `${data.metrics_before.ai_risk}%`;
-      metricAiAfter.textContent = `${data.metrics_after.ai_risk}%`;
-      metricCliches.textContent = `${data.metrics_before.cliche_count} purged`;
-      metricWatermarks.textContent = `${data.watermarks_found} purged`;
-      metricChanges.textContent = `${data.changes_count} shifts`;
-
+      metricAiBefore.textContent = `${metricsBefore.ai_risk}%`;
       metricsBar.style.display = "grid";
+
+      const completedChunks = [];
+      let totalShifts = 0;
+      let totalClichesPurged = metricsBefore.cliche_count || 0;
+      let lastModelUsed = "deterministic-3layer";
+
+      // Step 2: Process each chunk sequentially and stream into output pane
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkNum = i + 1;
+        const pct = Math.round(((i + 0.2) / totalChunks) * 100);
+        progressBarFill.style.width = `${Math.max(8, pct)}%`;
+        progressChunkBadge.textContent = `CHUNK ${chunkNum} / ${totalChunks}`;
+        progressStatusText.textContent = `REWRITING CHUNK ${chunkNum} OF ${totalChunks} VIA PRIORITY WATERFALL...`;
+
+        const chunkPayloadText = typeof chunks[i] === "string" ? chunks[i] : chunks[i].text;
+        const res = await fetch("/api/humanize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: chunkPayloadText, intensity })
+        });
+
+        if (!res.ok) {
+          throw new Error(`Humanize error on chunk ${chunkNum} (HTTP ${res.status})`);
+        }
+
+        const data = await res.json();
+        completedChunks.push(data.cleaned_text);
+        totalShifts += (data.changes_count || 0);
+        if (data.model_used) {
+          lastModelUsed = data.model_used;
+        }
+
+        // Stream live result into textarea
+        const currentFullOutput = completedChunks.join("\n\n");
+        outputText.value = currentFullOutput;
+        const outWords = countWords(currentFullOutput);
+        outputWordCount.textContent = `${outWords} words`;
+
+        // Update active model badge
+        activeModelBadge.innerHTML = `${PULSE_SVG} ${lastModelUsed.toUpperCase()}`;
+
+        const donePct = Math.round((chunkNum / totalChunks) * 100);
+        progressBarFill.style.width = `${donePct}%`;
+      }
+
+      // Step 3: Final whole-document AI footprint verification
+      const finalOutput = completedChunks.join("\n\n");
+      outputText.value = finalOutput;
+      const inWords = countWords(text);
+      const outWords = countWords(finalOutput);
+      const retentionPct = inWords > 0 ? Math.round((outWords / inWords) * 100) : 100;
+      outputWordCount.textContent = `${outWords} words (${retentionPct}%)`;
+
+      const detectRes = await fetch("/api/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: finalOutput })
+      });
+
+      if (detectRes.ok) {
+        const detectData = await detectRes.json();
+        const afterMetrics = detectData.metrics;
+        metricAiAfter.textContent = `${afterMetrics.ai_risk}%`;
+        metricBurstiness.textContent = `${afterMetrics.burstiness_score}%`;
+        const remainingCliches = afterMetrics.cliche_count || 0;
+        const purgedCount = Math.max(totalClichesPurged - remainingCliches, totalClichesPurged);
+        metricCliches.textContent = `${purgedCount} purged`;
+      }
+
+      metricChanges.textContent = `${totalShifts} shifts`;
+      progressStatusText.textContent = `COMPLETE // ${totalChunks} CHUNK(S) PROCESSED // ${outWords} WORDS`;
+      progressChunkBadge.textContent = "100% DONE";
     } catch (err) {
       alert("Error processing text: " + err.message);
+      progressContainer.style.display = "none";
     } finally {
       humanizeBtn.disabled = false;
       humanizeBtn.innerHTML = `${LIGHTNING_SVG} HUMANIZE THESIS TEXT`;

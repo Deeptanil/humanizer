@@ -1,7 +1,8 @@
 """
-Turnitout Core Sanitizer
+Turnitout Core Sanitizer & Token Protector
 Strips hidden zero-width tracking characters, AI watermarks, and protects
-academic citations, math environments, and formatting placeholders.
+academic citations, math environments, and formatting placeholders across both
+LLM rewrites and deterministic regex passes.
 """
 
 import re
@@ -32,6 +33,7 @@ LATEX_CITE_REGEX = re.compile(r'\\(?:cite|citep|citet|nocite)\{[^}]+\}')
 LATEX_MATH_INLINE = re.compile(r'\$(?:\\\$|[^$])+\$')
 LATEX_MATH_BLOCK = re.compile(r'\$\$(?:\\\$|[^$])+\$\$')
 
+
 class WatermarkSanitizer:
     @staticmethod
     def inspect(text: str) -> dict:
@@ -51,7 +53,7 @@ class WatermarkSanitizer:
                 found[name] = count
         return {
             "total_watermarks": sum(found.values()),
-            "details": found
+            "details": found,
         }
 
     @staticmethod
@@ -60,6 +62,7 @@ class WatermarkSanitizer:
         if not text:
             return ""
         return ZERO_WIDTH_REGEX.sub('', text)
+
 
 class TokenProtector:
     """Protects citations, LaTeX commands, and equations during text manipulation."""
@@ -72,12 +75,11 @@ class TokenProtector:
         self.counter = 0
 
         def _stash(match):
-            token = f"\uE000PROT{self.counter}\uE001"
+            token = f"__PROT_{self.counter}__"
             self.placeholders[token] = match.group(0)
             self.counter += 1
             return token
 
-        # Protect block math first, then inline math, then citations
         text = LATEX_MATH_BLOCK.sub(_stash, text)
         text = LATEX_MATH_INLINE.sub(_stash, text)
         text = LATEX_CITE_REGEX.sub(_stash, text)
@@ -87,7 +89,8 @@ class TokenProtector:
         return text
 
     def restore(self, text: str) -> str:
-        for token, original in self.placeholders.items():
-            text = text.replace(token, original)
+        for idx, (token, original) in enumerate(self.placeholders.items()):
+            # Match exact token or slight spacing/case variations if an LLM touched it
+            pattern = re.compile(rf"__+\s*PROT[_\s]*{idx}\s*__+", re.IGNORECASE)
+            text = pattern.sub(lambda _: original, text)
         return text
-
