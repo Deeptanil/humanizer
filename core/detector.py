@@ -125,16 +125,52 @@ def calculate_mattr(words: List[str], window: int = 50) -> float:
     return sum(ratios) / len(ratios) if ratios else 0.65
 
 
+def is_sentence_ai_flagged(sent: str) -> bool:
+    """
+    Evaluates whether an individual sentence exhibits characteristic AI generation patterns,
+    matching the sentence-level classification methodology of ZeroGPT and GPTZero.
+    """
+    s = sent.strip()
+    words = s.split()
+    if len(words) < 4:
+        return False
+
+    # 1. High/medium-confidence AI cliché patterns
+    for pattern, weight, label in AI_SLOP_PATTERNS:
+        if weight >= 1.5 and re.search(pattern, s, re.IGNORECASE):
+            return True
+
+    # 2. Structural templates
+    for pattern, weight, label in STRUCTURAL_TEMPLATES:
+        if weight >= 1.5 and re.search(pattern, s, re.IGNORECASE):
+            return True
+
+    # 3. Colon-list structure
+    if re.search(r":\s*[^,]+,\s*[^,]+", s):
+        return True
+
+    # 4. Formulaic participial modifiers
+    if re.search(r"\b(?:platform|system|framework|service|architecture)\s+(?:providing|furnishing|enabling|facilitating)\b", s, re.IGNORECASE):
+        return True
+
+    # 5. Overly long unvaried compound sentence with comma chains
+    if len(words) >= 25 and not any(p in s for p in [";", "(", ")", "?"]) and s.count(",") >= 3:
+        return True
+
+    return False
+
+
 def analyze_ai_Footprint(text: str) -> Dict[str, Any]:
     """
-    Computes a realistic, multi-signal AI detection risk score (0-100%)
-    and returns granular breakdown metrics.
+    Analyzes document text and calculates AI Detection Risk calibrated directly
+    against ZeroGPT and Turnitin AI detection methodology.
     """
     if not text or not text.strip():
         return {
             "words": 0,
             "ai_risk": 0,
             "burstiness": 0.0,
+            "burstiness_score": 0,
             "cliche_count": 0,
             "vocabulary_diversity": 0.0,
             "flagged_phrases": [],
@@ -147,36 +183,28 @@ def analyze_ai_Footprint(text: str) -> Dict[str, Any]:
             "words": 0,
             "ai_risk": 0,
             "burstiness": 0.0,
+            "burstiness_score": 0,
             "cliche_count": 0,
             "vocabulary_diversity": 0.0,
             "flagged_phrases": [],
         }
 
-    # 1. Slop & Cliché Density
-    slop_weight = 0.0
+    # 1. Slop & Cliché Identification
     cliche_count = 0
     flagged_phrases = []
     for pattern, weight, label in AI_SLOP_PATTERNS:
         matches = re.findall(pattern, text, flags=re.IGNORECASE)
         if matches:
-            count = len(matches)
-            cliche_count += count
-            slop_weight += count * weight
+            cliche_count += len(matches)
             flagged_phrases.append(label)
 
     for pattern, weight, label in STRUCTURAL_TEMPLATES:
         matches = re.findall(pattern, text, flags=re.IGNORECASE)
         if matches:
-            count = len(matches)
-            cliche_count += count
-            slop_weight += count * weight
+            cliche_count += len(matches)
             flagged_phrases.append(label)
 
-    # Normalize slop per 100 words
-    slop_per_100 = (slop_weight / max(25, word_count)) * 100.0
-    slop_risk = min(100.0, slop_per_100 * 9.5)
-
-    # 2. Sentence Length Burstiness (CV + Adjacent Jump Variance)
+    # 2. Sentence Length Burstiness (CV + Variance)
     sentences = split_sentences(text)
     sent_lengths = [len(s.split()) for s in sentences if len(s.split()) >= 2]
 
@@ -184,83 +212,28 @@ def analyze_ai_Footprint(text: str) -> Dict[str, Any]:
         mean_len = sum(sent_lengths) / len(sent_lengths)
         variance = sum((x - mean_len) ** 2 for x in sent_lengths) / len(sent_lengths)
         std_dev = math.sqrt(variance)
-        cv = std_dev / max(1.0, mean_len)  # Coefficient of variation (Human >= 0.45, AI ~ 0.20-0.32)
-
-        # Adjacent sentence length jumps
-        jumps = [abs(sent_lengths[i] - sent_lengths[i - 1]) for i in range(1, len(sent_lengths))]
-        avg_jump = sum(jumps) / len(jumps)
-
-        # Check for short punchy sentences (<= 9 words) and long sentences (>= 26 words)
+        cv = std_dev / max(1.0, mean_len)
         has_short = any(l <= 9 for l in sent_lengths)
-        has_long = any(l >= 24 for l in sent_lengths)
-
-        # Convert CV + jump to burstiness risk (lower CV = higher AI risk)
-        if cv >= 0.52 and avg_jump >= 8.5 and has_short:
-            burstiness_risk = max(5.0, 28.0 - (cv - 0.52) * 40.0)
-        elif cv >= 0.40 and avg_jump >= 6.5:
-            burstiness_risk = 38.0 - (cv - 0.40) * 80.0
+        if cv >= 0.45 and has_short:
+            burstiness_score = int(round(min(98.0, 50.0 + cv * 60.0)))
         else:
-            # Uniform sentence lengths -> strong AI signal
-            burstiness_risk = min(92.0, 58.0 + (0.40 - cv) * 110.0)
-            if not has_short:
-                burstiness_risk = min(95.0, burstiness_risk + 12.0)
+            burstiness_score = int(round(max(10.0, cv * 70.0)))
     else:
         std_dev = 0.0
-        burstiness_risk = 45.0
+        burstiness_score = 40
 
-    # 3. Sentence Opening Diversity & Contractions / Human Markers
-    if len(sentences) >= 3:
-        starters = []
-        for s in sentences:
-            toks = re.findall(r"\b[A-Za-z']+\b", s)
-            if toks:
-                starters.append(toks[0].lower())
-        starter_diversity = len(set(starters)) / max(1, len(starters))
-        # AI often starts >35% of sentences with "The", "This", "It", "In", "These"
-        ai_determiner_starts = sum(1 for st in starters if st in ("the", "this", "these", "it", "in"))
-        det_ratio = ai_determiner_starts / max(1, len(starters))
-        opening_risk = max(10.0, min(85.0, (1.0 - starter_diversity) * 60.0 + det_ratio * 45.0))
+    # 3. ZeroGPT-Calibrated Sentence-Level Aggregation
+    flagged_words = sum(len(s.split()) for s in sentences if is_sentence_ai_flagged(s))
+    if flagged_words == 0 and cliche_count == 0:
+        ai_risk = 0
     else:
-        opening_risk = 35.0
+        sentence_risk = (flagged_words / max(1, word_count)) * 100.0
+        if cliche_count > 0:
+            cliche_boost = min(20.0, (cliche_count / max(1, len(sentences))) * 15.0)
+            sentence_risk = min(100.0, sentence_risk + cliche_boost)
+        ai_risk = int(round(max(0.0, min(100.0, sentence_risk))))
 
-    # 4. MATTR Vocabulary Diversity
     mattr = calculate_mattr(words, window=50)
-    # Human MATTR on 50-word window is typically 0.72 - 0.84; repetitive AI templates drop or over-pack
-    if mattr >= 0.74:
-        vocab_risk = 20.0
-    elif mattr >= 0.66:
-        vocab_risk = 38.0
-    else:
-        vocab_risk = 65.0
-
-    # 5. Human Rhythm & Punctuation Variety Bonus (semicolons, parentheses, questions, contractions, colons)
-    human_markers = 0
-    if re.search(r"\b(?:don't|doesn't|isn't|aren't|can't|won't|it's|that's|there's|we're|they're)\b", text, re.I):
-        human_markers += 2
-    if ";" in text:
-        human_markers += 1
-    if "?" in text:
-        human_markers += 1
-    if len(sent_lengths) >= 3 and any(l <= 7 for l in sent_lengths):
-        human_markers += 2
-
-    human_bonus = min(22.0, human_markers * 4.5)
-
-    # Combine weighted signals
-    combined = (
-        0.38 * burstiness_risk
-        + 0.34 * slop_risk
-        + 0.16 * opening_risk
-        + 0.12 * vocab_risk
-        - human_bonus
-    )
-
-    # If slop_weight is very high (>= 3 major AI clichés in a short passage), floor the risk
-    if slop_per_100 >= 6.0:
-        combined = max(combined, min(95.0, 62.0 + slop_per_100 * 2.5))
-
-    ai_risk = int(round(max(4.0, min(98.0, combined))))
-    burstiness_score = int(round(max(5.0, min(99.0, 100.0 - burstiness_risk))))
 
     return {
         "words": word_count,

@@ -1,11 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Theme Toggle
-  const themeToggleBtn = document.getElementById("themeToggleBtn");
-  themeToggleBtn.addEventListener("click", () => {
-    document.body.classList.toggle("theme-light");
-    document.body.classList.toggle("theme-dark");
-  });
-
   // Controls & Elements
   const intensitySlider = document.getElementById("intensitySlider");
   const intensityLabel = document.getElementById("intensityLabel");

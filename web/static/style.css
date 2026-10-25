@@ -34,15 +34,6 @@
   --radius-comic: 12px;
 }
 
-/* Light Theme Variables */
-body.theme-light {
-  --bg-deep: #F0F4F8;
-  --bg-surface: #FFFFFF;
-  --bg-surface-elevated: #FFFDF5;
-  --text-light: #000000;
-  --text-muted: #4B5563;
-}
-
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -166,10 +157,6 @@ body {
   color: var(--comic-cyan);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-}
-
-body.theme-light .logo-subtitle {
-  color: var(--comic-purple);
 }
 
 /* SVG Icons Utility */
@@ -518,12 +505,26 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  gap: 12px;
+}
+
+.pane-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex: 1;
 }
 
 .pane-tools {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .word-counter {
@@ -545,11 +546,6 @@ textarea {
   resize: none;
   outline: none;
   min-height: 400px;
-}
-
-body.theme-light textarea {
-  background-color: #FFFFFF;
-  color: #000000;
 }
 
 textarea::placeholder {
