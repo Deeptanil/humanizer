@@ -113,6 +113,42 @@ COLLOCATION_RULES: List[Tuple[str, List[str]]] = [
         "opens the door to",
         "lays the groundwork for",
     ]),
+    (r"\ba\s+living\s+testament\s+to\b", [
+        "clear proof of",
+        "tangible evidence of",
+    ]),
+    (r"\ban?\s+enduring\s+reminder\s+(?:that|of)\b", [
+        "clear evidence that",
+        "a direct demonstration that",
+    ]),
+    (r"\ba\s+cornerstone\s+of\b", [
+        "a foundational pillar of",
+        "central to",
+    ]),
+    (r"\ba\s+vital\s+catalyst\s+for\b", [
+        "a primary driver of",
+        "a major catalyst for",
+    ]),
+    (r"\bvital\s+catalyst\b", [
+        "primary driver",
+        "major catalyst",
+    ]),
+    (r"\bthough\s+invisible\s+to\s+the\s+naked\s+eye,?\s*", [
+        "while invisible without instrumentation, ",
+        "although unseen by the naked eye, ",
+    ]),
+    (r"\binvisible\s+to\s+the\s+naked\s+eye\b", [
+        "unseen without instrumentation",
+        "invisible to casual observation",
+    ]),
+    (r"\bat\s+its\s+essence,?\s*", [
+        "fundamentally, ",
+        "at its physical core, ",
+    ]),
+    (r"\ban\s+essential\s+tool\s+in\s+the\s+fight\s+against\b", [
+        "central to mitigating",
+        "a primary defense against",
+    ]),
     (r"\bstands?\s+as\s+a\s+testament\s+to\b", [
         "directly reflects",
         "gives clear proof of",
@@ -137,13 +173,45 @@ COLLOCATION_RULES: List[Tuple[str, List[str]]] = [
         "clarifying the mechanics behind",
         "giving a clearer picture of",
     ]),
-    (r"\bfoster(?:s|ed|ing)?\b", [
+    (r"\bfostering\b", [
+        "building",
+        "supporting",
+        "driving",
+    ]),
+    (r"\bfostered\b", [
+        "built",
+        "supported",
+        "encouraged",
+    ]),
+    (r"\bfosters\b", [
+        "builds",
+        "supports",
+        "drives",
+    ]),
+    (r"\bfoster\b", [
         "build",
         "support",
+        "encourage",
     ]),
-    (r"\bharness(?:es|ed|ing)?\b", [
-        "use",
-        "apply",
+    (r"\bharnessing\b", [
+        "capturing",
+        "utilizing",
+        "deploying",
+    ]),
+    (r"\bharnessed\b", [
+        "captured",
+        "utilized",
+        "deployed",
+    ]),
+    (r"\bharnesses\b", [
+        "captures",
+        "utilizes",
+        "deploys",
+    ]),
+    (r"\bharness\b", [
+        "capture",
+        "utilize",
+        "deploy",
     ]),
     (r"\bFurthermore,\s*", [
         "Beyond that, ",
@@ -466,9 +534,9 @@ def inject_burstiness_and_structure(
             sent = f"{head_clause.strip()}. Specifically, these include {list_clean}{punct}"
             changes += 1
 
-        # 5. Fix overly long compound sentences (>=19 words with commas) to inject extreme burstiness
+        # 5. Fix overly long compound sentences in offline mode to inject burstiness
         words = sent.split()
-        if len(words) >= 19 and not any(p in sent for p in [";", "(", ")", "?"]) and sent.count(",") >= 1:
+        if not llm_was_used and len(words) >= 24 and not any(p in sent for p in [";", "(", ")", "?"]) and sent.count(",") >= 2:
             # First try splitting at a natural coordinating/subordinating clause boundary
             clause_split = re.search(
                 r"^(.{24,}?),\s+(and|while|which|whereas|because|since|where|although)\s+(.{10,})([.!?])$",
@@ -479,15 +547,18 @@ def inject_burstiness_and_structure(
                 first_c, conj, second_c, punct = clause_split.groups()
                 c_low = conj.lower()
                 sec_trimmed = second_c.strip()
-                if c_low in ("and", "which"):
-                    sec_cap = sec_trimmed[0].upper() + sec_trimmed[1:] if len(sec_trimmed) > 1 else sec_trimmed.upper()
-                    if c_low == "which":
-                        sent = f"{first_c.strip()}. This {sec_trimmed}{punct}"
-                    else:
+                if c_low == "which":
+                    sent = f"{first_c.strip()}. This {sec_trimmed}{punct}"
+                    changes += 1
+                elif c_low == "and":
+                    sec_words = sec_trimmed.split()
+                    if len(sec_words) >= 4 and sec_words[0].lower() in ("it", "this", "they", "we", "he", "she"):
+                        sec_cap = sec_trimmed[0].upper() + sec_trimmed[1:]
                         sent = f"{first_c.strip()}. {sec_cap}{punct}"
-                else:
+                        changes += 1
+                elif c_low in ("while", "whereas", "although", "since", "because", "where"):
                     sent = f"{first_c.strip()}; {c_low} {sec_trimmed}{punct}"
-                changes += 1
+                    changes += 1
             elif sent.count(",") >= 3:
                 # Replace the middle comma with a semicolon to break uniform comma rhythm
                 comma_positions = [m.start() for m in re.finditer(r",", sent)]
@@ -517,18 +588,26 @@ def inject_burstiness_and_structure(
                     parts = s.split(", but ", 1)
                     p1 = parts[0].strip()
                     p2 = parts[1].strip()
-                    p2_cap = p2[0].upper() + p2[1:] if len(p2) > 1 else p2.upper()
-                    rebuilt_sents.append(f"{p1}.")
-                    rebuilt_sents.append(f"However, {p2_cap}")
-                    changes += 1
+                    p2_words = p2.split()
+                    if len(p2_words) >= 4 and p2_words[0].lower() in ("it", "this", "they", "we", "he", "she", "the", "these"):
+                        p2_rest = p2[0].lower() + p2[1:] if len(p2) > 1 else p2.lower()
+                        rebuilt_sents.append(f"{p1}.")
+                        rebuilt_sents.append(f"Even so, {p2_rest}")
+                        changes += 1
+                    else:
+                        rebuilt_sents.append(s)
                 elif len(w_list) >= 20 and ", and " in s:
                     parts = s.split(", and ", 1)
                     p1 = parts[0].strip()
                     p2 = parts[1].strip()
-                    p2_cap = p2[0].upper() + p2[1:] if len(p2) > 1 else p2.upper()
-                    rebuilt_sents.append(f"{p1}.")
-                    rebuilt_sents.append(f"{p2_cap}")
-                    changes += 1
+                    p2_words = p2.split()
+                    if len(p2_words) >= 4 and p2_words[0].lower() in ("it", "this", "they", "we", "he", "she"):
+                        p2_cap = p2[0].upper() + p2[1:] if len(p2) > 1 else p2.upper()
+                        rebuilt_sents.append(f"{p1}.")
+                        rebuilt_sents.append(f"{p2_cap}")
+                        changes += 1
+                    else:
+                        rebuilt_sents.append(s)
                 else:
                     rebuilt_sents.append(s)
             processed_sentences = rebuilt_sents

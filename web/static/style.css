@@ -497,9 +497,11 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  min-height: 62px;
-  height: 62px;
-  padding: 10px 18px;
+  height: 58px;
+  min-height: 58px;
+  max-height: 58px;
+  padding: 0 18px;
+  box-sizing: border-box;
   background-color: var(--bg-surface-elevated);
   border-bottom: var(--border-heavy);
   font-family: var(--font-heading);
@@ -516,9 +518,12 @@ input[type="range"]::-moz-range-thumb {
   gap: 8px;
   min-width: 0;
   flex: 1;
+  height: 100%;
 }
 
 .pane-title {
+  display: inline-flex;
+  align-items: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -527,6 +532,7 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  line-height: 1;
 }
 
 .pane-tools {
@@ -534,6 +540,7 @@ input[type="range"]::-moz-range-thumb {
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+  height: 100%;
 }
 
 .progress-badges {
@@ -544,6 +551,9 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .word-counter {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
