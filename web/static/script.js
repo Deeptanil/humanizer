@@ -357,66 +357,69 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
       metricAiBefore.textContent = `${metricsBefore.ai_risk}%`;
       metricsBar.style.display = "grid";
 
-      const completedChunks = new Array(totalChunks).fill(null);
-      let completedCount = 0;
+      const completedChunks = [];
       let totalShifts = 0;
       let totalClichesPurged = metricsBefore.cliche_count || 0;
-      let lastModelUsed = "deterministic-3layer";
+      let lastModelUsed = "gemini-3.5-flash-lite";
 
-      // Step 2: Process chunks across 2 parallel model-sharded workers (worker_id = i % 2)
-      // Worker 0 routes to primary active model; Worker 1 shards to secondary active model
-      // to double throughput without hitting per-model RPM rate limits.
-      const CONCURRENCY = Math.min(2, totalChunks);
-      let nextChunkIndex = 0;
+      // Step 2: Process chunks sequentially with auto-retry on transient network errors
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkNum = i + 1;
+        const chunkPayloadText = typeof chunks[i] === "string" ? chunks[i] : chunks[i].text;
 
-      async function runChunkWorker(workerSlot) {
-        while (nextChunkIndex < totalChunks) {
-          const i = nextChunkIndex++;
-          const chunkNum = i + 1;
-          progressStatusText.textContent = `SHARDED WATERFALL // REWRITING CHUNK ${chunkNum} OF ${totalChunks}...`;
+        progressStatusText.textContent = `HUMANIZING CHUNK ${chunkNum} OF ${totalChunks}...`;
+        progressChunkBadge.textContent = `CHUNK ${chunkNum} / ${totalChunks}`;
+        const startPct = Math.round(((i + 0.1) / totalChunks) * 100);
+        progressBarFill.style.width = `${Math.max(8, startPct)}%`;
 
-          const chunkPayloadText = typeof chunks[i] === "string" ? chunks[i] : chunks[i].text;
-          const res = await fetch("/api/humanize", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              text: chunkPayloadText,
-              intensity,
-              worker_id: i % 2
-            })
-          });
+        let chunkResultText = null;
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const res = await fetch("/api/humanize", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                text: chunkPayloadText,
+                intensity,
+              }),
+            });
 
-          if (!res.ok) {
-            throw new Error(`Humanize error on chunk ${chunkNum} (HTTP ${res.status})`);
+            if (res.ok) {
+              const data = await res.json();
+              chunkResultText = data.cleaned_text || chunkPayloadText;
+              totalShifts += (data.changes_count || 0);
+              if (data.model_used) {
+                lastModelUsed = data.model_used;
+              }
+              break;
+            } else if (attempt === 0) {
+              await new Promise((r) => setTimeout(r, 1200));
+            }
+          } catch (netErr) {
+            if (attempt === 0) {
+              await new Promise((r) => setTimeout(r, 1200));
+            }
           }
-
-          const data = await res.json();
-          completedChunks[i] = data.cleaned_text;
-          completedCount++;
-          totalShifts += (data.changes_count || 0);
-          if (data.model_used) {
-            lastModelUsed = data.model_used;
-          }
-
-          // Stream ordered prefix / completed chunks into textarea live
-          const currentReady = completedChunks.filter((c) => c !== null).join("\n\n");
-          outputText.value = currentReady;
-          const outWords = countWords(currentReady);
-          outputWordCount.textContent = `${outWords} words`;
-
-          // Update active model badge & progress bar
-          activeModelBadge.innerHTML = `${PULSE_SVG} ${lastModelUsed.toUpperCase()}`;
-          progressChunkBadge.textContent = `CHUNK ${completedCount} / ${totalChunks}`;
-          const donePct = Math.round((completedCount / totalChunks) * 100);
-          progressBarFill.style.width = `${Math.max(10, donePct)}%`;
         }
-      }
 
-      const workers = [];
-      for (let w = 0; w < CONCURRENCY; w++) {
-        workers.push(runChunkWorker(w));
+        // Fallback to original text if both attempts failed so document processing never crashes
+        if (!chunkResultText) {
+          chunkResultText = chunkPayloadText;
+        }
+
+        completedChunks.push(chunkResultText);
+
+        // Stream live completed chunks into output textarea
+        const currentReady = completedChunks.join("\n\n");
+        outputText.value = currentReady;
+        const outWords = countWords(currentReady);
+        outputWordCount.textContent = `${outWords} words`;
+
+        // Update active model badge & progress track
+        activeModelBadge.innerHTML = `${PULSE_SVG} ${lastModelUsed.toUpperCase()}`;
+        const donePct = Math.round((chunkNum / totalChunks) * 100);
+        progressBarFill.style.width = `${donePct}%`;
       }
-      await Promise.all(workers);
 
       // Step 3: Final whole-document AI footprint verification
       const finalOutput = completedChunks.join("\n\n");

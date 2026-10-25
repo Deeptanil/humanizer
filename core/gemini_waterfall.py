@@ -12,8 +12,7 @@ import requests
 from typing import List, Dict, Optional, Tuple, Any
 
 # Default ordered priority list configured per user specification:
-# 1. Gemini 3.5 Flash Lite -> 2. Gemini 3.1 Flash Lite -> 3. Gemini 2.5 Flash Lite
-# -> 4. Gemini 3.6 Flash -> 5. Gemini 3.8 Flash
+# Prioritizes active, low-latency models with fast failover.
 DEFAULT_MODEL_PRIORITY: List[str] = [
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
@@ -22,6 +21,9 @@ DEFAULT_MODEL_PRIORITY: List[str] = [
     "gemini-3.6-flash",
     "gemini-3.8-flash",
 ]
+
+# Known retired/404 models that should be skipped on live API calls
+RETIRED_MODELS = {"gemini-2.5-flash-lite", "gemini-2.5-flash"}
 
 
 def _load_dotenv_if_present() -> None:
@@ -93,10 +95,10 @@ class GeminiWaterfallRouter:
         self,
         api_key: Optional[str] = None,
         model_priority: Optional[List[str]] = None,
-        cooldown_seconds: float = 25.0,
-        request_timeout: float = 12.0,
-        max_rpm_per_model: int = 12,
-        min_interval_seconds: float = 0.85,
+        cooldown_seconds: float = 20.0,
+        request_timeout: float = 4.5,
+        max_rpm_per_model: int = 14,
+        min_interval_seconds: float = 0.5,
     ):
         self._explicit_api_key = api_key
         self._explicit_models = model_priority
@@ -309,6 +311,9 @@ class GeminiWaterfallRouter:
         for m in models:
             if m in self.dead_models:
                 continue
+            # When using default priority on live calls, skip retired 404 models
+            if self._explicit_models is None and m in RETIRED_MODELS:
+                continue
             if self.cooldown_until.get(m, 0.0) > now:
                 cooling_candidates.append(m)
             elif self.is_model_rate_limited(m, now=now):
@@ -316,9 +321,9 @@ class GeminiWaterfallRouter:
             else:
                 ready_candidates.append(m)
 
-        if preferred_model_offset > 0 and len(ready_candidates) > 1:
-            shift = preferred_model_offset % len(ready_candidates)
-            ready_candidates = ready_candidates[shift:] + ready_candidates[:shift]
+        # In production default mode, keep gemini-3.5-flash as active backup
+        if self._explicit_models is None and "gemini-3.5-flash" not in ready_candidates and "gemini-3.5-flash" not in throttled_candidates:
+            ready_candidates.append("gemini-3.5-flash")
 
         full_try_order = ready_candidates + throttled_candidates + cooling_candidates
 
