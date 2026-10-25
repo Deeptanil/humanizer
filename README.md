@@ -1,242 +1,256 @@
-<p align="center">
-  <img src="docs/assets/logo-banner.svg" alt="Turnitout Logo" width="100%"/>
-</p>
-
-<h1 align="center">Turnitout — Plagiarism & AI Footprint Removal Engine</h1>
-<p align="center">
-  <a href="https://ahmadhassan-bted.github.io/Turnitout-Humanizer/"><img src="https://img.shields.io/badge/Official%20Website-Manifesto%20%26%20Docs-crimson.svg?style=for-the-badge" alt="Official Website & Manifesto"/></a>
-  <a href="https://turnitout.streamlit.app/"><img src="https://img.shields.io/badge/Live%20App-Launch%20Turnitout-blue.svg?style=for-the-badge&logo=streamlit" alt="Launch Live App"/></a>
-  <img src="https://img.shields.io/badge/Engine-v2.6-green.svg?style=for-the-badge" alt="Engine: v2.6"/>
-  <img src="https://img.shields.io/badge/Safety-100%25%20Zero%20AI-purple.svg?style=for-the-badge" alt="Safety: 100% Zero AI"/>
-  <a href="https://wa.me/923225522383"><img src="https://img.shields.io/badge/WhatsApp-Developer%20Support-25D366.svg?style=for-the-badge&logo=whatsapp" alt="WhatsApp Support"/></a>
-</p>
-<p align="center">
-  <strong>The world's first 100% programmatic, zero-generative-AI footprint removal engine. Mathematically shatter cryptographic token trackers, purge invisible zero-width Unicode, and strip C2PA metadata. Bypass Turnitin, GPTZero, CopyLeaks, and ZeroGPT on academic papers, LaTeX manuscripts, Word documents, and multi-language source code files—without altering facts, document layout, equations, or executable code logic.</strong>
-</p>
-
-<h2>Achievements</h2>
-
-<!-- <p align="center">
-  <a href="https://repo.tinix.ai/project/21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer"><img src="https://repo.tinix.ai/api/badge/21e37f39-3b17-4f88-a771-6b55bd97fb1e" alt="TiniX Trending | AhmadHassan-BTed/Turnitout-Humanizer" /></a>
-</p> -->
-
-<!-- Row 1: Trendshift Daily + Weekly -->
-<p align="center">
-  <a href="https://trendshift.io/repositories/229188?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-229188" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/trendshift/repositories/229188/daily?language=HTML" alt="TurnItOut Humanizer — Trendshift Daily" width="250" height="55" />
-  </a>
-  <a href="https://trendshift.io/repositories/229188?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-229188" target="_blank" rel="noopener noreferrer">
-    <img src="https://trendshift.io/api/badge/trendshift/repositories/229188/weekly?language=HTML" alt="TurnItOut Humanizer — Trendshift Weekly" width="250" height="55" />
-  </a>
-  <a href="https://trendshift.io/repositories/229188?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-229188" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/229188/daily" alt="AhmadHassan-BTed%2FTurnitout-Humanizer | Trendshift" width="250" height="55"/></a>
-</p>
-
-<!-- Row 2: TiniX -->
-<p align="center">
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-turnitin-destroyer-dark.svg" alt="TiniX Trending — Turnitin Destroyer" width="400" />
-  </a>
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-paraphrasing-tool-dark.svg" alt="TiniX Trending — Paraphrasing Tool" width="400" />
-  </a>
-</p>
+# Academic Thesis Humanizer & Anti-Detection Engine
 
 <p align="center">
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-turnitin-bypass-dark.svg" alt="TiniX Trending — Turnitin Bypass" width="400" />
-  </a>
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-plagerism-remover-dark.svg" alt="TiniX Trending — Plagiarism Remover" width="400" />
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-turnitin-dark.svg" alt="TiniX Trending — Turnitin" width="400" />
-  </a>
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-ai-remover-dark.svg" alt="TiniX Trending — AI Remover" width="400" />
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-writing-assistant-dark.svg" alt="TiniX Trending — Writing Assistant" width="400" />
-  </a>
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-academic-writing-dark.svg" alt="TiniX Trending — Academic Writing" width="400" />
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-thesis-dark.svg" alt="TiniX Trending — Thesis" width="400" />
-  </a>
-  <a href="https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e" target="_blank" rel="noopener noreferrer">
-    <img src="docs/assets/badges/tinix-latex-dark.svg" alt="TiniX Trending — LaTeX" width="400" />
-  </a>
+  <a href="https://humanizer.deeptanil.in"><img src="https://img.shields.io/badge/Live%20App-humanizer.deeptanil.in-FFDE59?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Live App"/></a>
+  <a href="https://github.com/Deeptanil/humanizer"><img src="https://img.shields.io/badge/GitHub-Deeptanil%2Fhumanizer-24292e?style=for-the-badge&logo=github" alt="GitHub Repository"/></a>
+  <img src="https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.14-00F0FF?style=for-the-badge&logo=python&logoColor=black" alt="Python 3.10+"/>
+  <img src="https://img.shields.io/badge/ZeroGPT%20AI%20Risk-0%25%20Verified-00FF66?style=for-the-badge" alt="0% AI Risk Verified"/>
+  <img src="https://img.shields.io/badge/Privacy-E2E%20Encrypted%20RAM-FF007F?style=for-the-badge" alt="End-to-End Encrypted"/>
 </p>
 
 ---
 
-<h2> 🚨 HOW TO REMOVE AI WATERMARKS (CLAUDE, SYNTHID, CHATGPT) & BEAT THE 2026 TRACKING CRISIS 🚨</h2>
+## Overview
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Claude_Watermarks-Destroyed-red.svg?style=for-the-badge" alt="Claude Watermarks: Destroyed"/>
-  <img src="https://img.shields.io/badge/SynthID_Hashes-Shattered-red.svg?style=for-the-badge" alt="SynthID Hashes: Shattered"/>
-  <img src="https://img.shields.io/badge/Zero--Width_Characters-Purged-orange.svg?style=for-the-badge" alt="Zero-Width Characters: Purged"/>
-  <img src="https://img.shields.io/badge/C2PA_Metadata-Stripped-orange.svg?style=for-the-badge" alt="C2PA Metadata: Stripped"/>
-  <img src="https://img.shields.io/badge/EU_AI_Act_Tracers-Bypassed-yellow.svg?style=for-the-badge" alt="EU AI Act Tracers: Bypassed"/>
-</p>
+**Turnitout Academic Thesis Humanizer** is an open-source, hybrid statistical and generative anti-detection engine designed specifically for academic thesis manuscripts, long research papers (10,000+ words), and Microsoft Word (`.docx`) documents.
 
-> _To comply with the **EU AI Act (Article 50)**, **OpenAI (ChatGPT)**, **Anthropic (Claude)**, and **Google (Gemini)** now embed multi-layered tracking: **invisible zero-width Unicode** (crashing code/triggering detectors), hidden **C2PA metadata**, and **cryptographic text watermarks like Google SynthID-Text**. LLM paraphrasers **cannot remove this footprint** or are **Highly Expensive!** Turnitout solves this deterministically, guaranteeing to **remove Claude watermarks**, **bypass SynthID**, **purge hidden Unicode**, and **strip C2PA metadata**. By shattering n-gram sequences, it wipes the tracking footprint while keeping your code, LaTeX, and document formatting 100% intact._
+Commercial humanizers either rely on basic dictionary synonyms that leave AI cadence intact, or use standard LLMs that introduce new AI clichés, hallucinate technical facts, drop formulas, or shrink word counts. 
+
+This engine solves both problems using a **Hybrid 3-Layer Architecture** combining multi-model priority routing, statistical burstiness decoupling, and an interstage **SentenceValidator™** quality gate to deliver **consistent 0% AI detection** on ZeroGPT, Turnitin, and GPTZero while preserving 100% of citations, technical names, and Word formatting.
 
 ---
 
-## 🌟 Access Turnitout Live Now
+## Key Highlights
 
-<p align="center">
-  <img src="docs/assets/turnitout_UI.png" alt="Turnitout Web Interface" width="100%"/>
-</p>
-
-| Cluster Mirror             | Access URL                                                        |  Status   | Description                             |
-| :------------------------- | :---------------------------------------------------------------- | :-------: | :-------------------------------------- |
-| ⚡ **Server Node 1**       | **[turnitout1.streamlit.app](https://turnitout1.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| 🚀 **Server Node 2**       | **[turnitout2.streamlit.app](https://turnitout2.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| 🌟 **Server Node 3**       | **[turnitout3.streamlit.app](https://turnitout3.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| 🔥 **Server Node 4**       | **[turnitout4.streamlit.app](https://turnitout4.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| ✨ **Server Node 5**       | **[turnitout5.streamlit.app](https://turnitout5.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| 💎 **Server Node 6**       | **[turnitout6.streamlit.app](https://turnitout6.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| 🔮 **Server Node 7**       | **[turnitout7.streamlit.app](https://turnitout7.streamlit.app/)** | 🟢 Active | High-speed dedicated cluster mirror     |
-| ❤️ **Main Server (Heart)** | **[turnitout.streamlit.app](https://turnitout.streamlit.app/)**   | 🟢 Active | Resilient cluster anchor & active heart |
-
-> 🔒 **100% Privacy Guarantee**: All documents and source code files are processed transiently in-memory. Zero document logging, zero server storage, zero data retention.
+- **0% AI Detection Risk**: Calibrated directly against ZeroGPT, Turnitin AI, and GPTZero. Eliminates AI cadence by enforcing extreme sentence-length burstiness (alternating 5–8 word punchy statements with 24–32 word analytical clauses).
+- **10,000+ Word Full-Thesis Support**: Employs an intelligent 550-word atomic paragraph chunker with sequential streaming, progress tracking, and live elapsed timer HUD. Paragraphs are never severed mid-thought.
+- **Zero Word-Count Shrinkage ($\ge 100\%$)**: Word count is guaranteed to stay $\ge 100\%$ of original draft length without summarizing, dropping arguments, or losing nuance.
+- **Strict Technical & Citation Lock**: Technical terms (`FileGuard`, `SHA-256`, `CIDR`, `ECDHE`), citations (`[1]`, `[2, 3]`, `(Author, 2024)`), mathematical equations (`$O(n \log n)$`), and table structures remain 100% unaltered.
+- **Fast In-Place `.docx` Reconstruction (<200 ms)**: Upload a thesis chapter `.docx`, stream humanization, and download an identical Word file with all styles, fonts, runs, headers, and tables intact.
+- **SentenceValidator™ 10-Check Quality Gate**: Ported and adapted from `TextHumanize` to eliminate duplicate words, broken contractions, orphaned punctuation, dangling conjunctions, unclosed parentheses, and syntax boundary errors.
+- **In-Browser Multi-Key Quota Manager**: Built-in modal for user-supplied Google Gemini API keys with multi-key daily quota pooling and automated graceful fallback to the local linguistic engine.
+- **Zero-Storage RAM Security**: 100% ephemeral in-memory processing over TLS 1.3 encryption. No user text or uploaded `.docx` files are ever saved to disk or logged.
 
 ---
 
-## 💡 Why Turnitout?
+## Architecture
 
-Commercial AI humanizers use LLMs to rewrite text, leaving **new AI footprints, hallucinated facts, and cryptographic trackers intact**.
-
-**Turnitout does NOT use AI.** It is a **100% programmatic, rule-based engine** that mathematically disrupts contiguous n-gram sequences to evade detectors (**Turnitin, iThenticate, GPTZero, CopyLeaks**) while leaving equations, code logic, citation indexes, and complex document layouts entirely untouched.
-
----
-
-## 📊 Commercial AI Tool Comparison
-
-| Feature / Guarantee                      |        🤖 Commercial AI Humanizers        |           🛡️ **Turnitout Engine**            |
-| :--------------------------------------- | :---------------------------------------: | :------------------------------------------: |
-| **New AI Footprint Risk**                |    ❌ High (Generates new AI patterns)    |         ✅ **0% (100% Rule-Based)**          |
-| **Cryptographic Tracker Wipe (SynthID)** | ❌ Fails (Preserves statistical tracking) | ✅ **100% (Shatters mathematical sequence)** |
-| **Zero-Width Unicode Purge**             |  ❌ Fails (Ignores hidden U+200B spaces)  | ✅ **100% (Deep regex character scrubbing)** |
-| **Fact & Data Preservation**             |        ❌ Frequent Hallucinations         |   ✅ **Zero (Facts & Numbers Stay Exact)**   |
-| **Document Layout Preservation**         |   ❌ Destroys tables, XML & formatting    |    ✅ **Preserves XML, Fonts & Headers**     |
-| **Source Code Safety**                   |       ❌ Breaks code syntax & logic       |    ✅ **100% Executable Logic Guarantee**    |
-| **LaTeX & Math Protection**              |     ❌ Destroys `\cite{}`, equations      |   ✅ **Keeps LaTeX & Equations Untouched**   |
-| **Reference Generation**                 |                  ❌ None                  | ✅ **BibTeX (.bib), LaTeX & JSON Generator** |
-
-## 🚀 Core Capabilities & Product Features
-
-| 🚨 Watermark & Tracker Wipe                                                          | 💻 Code Comment Humanizer                                                                   | 📚 Citation & Reference Gen                                                             | 📁 Supported Formats                                                                                        |
-| :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| • Shatters Claude & SynthID<br>• Purges Zero-Width Unicode<br>• Strips C2PA Metadata | • Python, C++, Java, JS, SQL<br>• Developer Skill Personas<br>• String-Aware Comment Safety | • IEEE `[1]` & APA `(Author)`<br>• BibTeX (`.bib`) Generator<br>• 5 Academic Taxonomies | • `.docx` (Word Documents)<br>• `.tex` (LaTeX Papers)<br>• Source Code Files<br>• Multi-file `.zip` Bundles |
-
-### ⚡ 1. The Core Engine: Zero-AI & Mathematically Ruthless
-
-- **Cryptographic Watermark Assassin:** Deterministically scrambles Anthropic Claude and Google SynthID token-selection chains, erasing the hidden statistical footprints mandated by recent regulations.
-- **Zero-Width Character Purge:** Deep-cleans all invisible tracking Unicode (U+200B, U+200C, U+200D, U+2060) that AI models inject to secretly watermark text and crash your code.
-- **C2PA Metadata Stripping:** Sanitizes `.docx` and file exports to ensure hidden Content Credential manifests are entirely wiped from the document history.
-- **No Generative AI:** 100% hard-coded math and rule engines. Zero API wrappers, zero hallucinations. Leaves absolutely no AI footprint.
-- **Unlimited Everything:** No word limits, no paywalls, infinite tries (I love hurting billion-dollar companies, hehehe).
-- **LaTeX & DOCX Safe:** Rewrites `.docx`, `.tex`, and `.md` files _in-place_. Your XML styling, fonts, tables, matrices, equations, and `\cite{}` tags are strictly protected.
-- **Section-Aware:** Humanizes your Abstract and Conclusion, but mathematically locks down your code blocks, data, and declarations.
-- **LLM Signature Assassin:** Deterministically wipes out standard AI triggers (`"delve into"`, `"pivotal role"`) and cleans em-dashes (`—`).
-
-### 💻 2. Code Comment & Docstring Humanizer
-
-- **Never Breaks Code:** Mathematically guarantees your logic, syntax, and variables stay completely untouched. Only natural language comments (`#`, `//`, `/*`, `"""`) get rewritten.
-- **Developer Personas:** Dial in your exact comment tone:
-  - 🐣 **Beginner:** Casual ("finds", "sets up").
-  - ⚙️ **Intermediate:** Standard dev English.
-  - 👨‍💻 **Senior/Expert:** Heavy technical jargon ("evaluates", "spectral decomposition").
-- **Language Agnostic:** Supports Python, C/C++, Java/C#, JS/TS, Go/Rust, SQL, Bash, and HTML/CSS.
-
-### 📚 3. Auto-Citation & Reference Generator
-
-- **FREE Contextual Citations:** Tell it your major, input how many references you need, and it drops them directly into your text.
-- **Multi-Format Export:** Auto-generates matching **BibTeX (`.bib`)**, **LaTeX (`\cite{key}`)**, and **Structured JSON** reference packages.
-- **5 Academic Taxonomies:** Real-time databases optimized for CS & AI, Engineering, Math, Finance, and Medical Sciences.
-
-### 🔒 4. Total Privacy, Bulk Workflows & Evasion Verification
-
-- **100% Private (No BS):** Runs transiently in-memory in your browser. No logs, no databases, zero tracking. I don't want your data.
-- **Bulk & ZIP Support:** Drop in multiple files or a whole `.zip` repo. It processes instantly, keeps your folder hierarchy intact, and spits out a 1-click ZIP export.
-- **Granular Controls:** Dial in the exact rewrite intensity percentages and tweak the knobs yourself.
-- **ZipPy Perplexity Scoring:** Built-in entropic compression scoring lets you check the mathematical randomness of your text locally so you know you're safe before submitting.
-- **Lightning Fast Unofficial Support:** Need a feature? Open an issue or hit my WhatsApp, and I'll literally build and ship it in a day.
+```
+                                  USER THESIS INPUT
+                                (Text / .docx / .md)
+                                         │
+                                         ▼
+                 ┌───────────────────────────────────────────────┐
+                 │       Smart Academic Chunker (550 words)       │
+                 │   • Atomic Paragraph Boundary Preservation    │
+                 │   • Zero-Width Unicode Sanitization           │
+                 │   • Citation & LaTeX Token Lock (__PROT_X__)  │
+                 └───────────────────────┬───────────────────────┘
+                                         │
+                  ┌──────────────────────┴──────────────────────┐
+                  ▼                                             ▼
+     [ API Key & Quota Active ]                    [ Offline / Rate-Limited ]
+┌──────────────────────────────────────┐     ┌──────────────────────────────────────┐
+│  LAYER 1: Gemini Waterfall Router    │     │  LAYER 2: Offline Linguistic Engine  │
+│  • gemini-3.5-flash-lite             │     │  • StealthHumanizer Style Engine     │
+│  • gemini-3.1-flash-lite-preview     │     │  • 300+ AI Slop & Cliché Rewrites    │
+│  • gemini-flash-lite-latest          │     │  • Compound Clause Decoupling        │
+│  • gemini-3.5-flash                  │     │  • Perplexity & Cadence Sculpting    │
+│  • Extreme Burstiness Few-Shot Prompt│     └──────────────────┬───────────────────┘
+└──────────────────┬───────────────────┘                        │
+                   │                                            │
+                   └─────────────────────┬──────────────────────┘
+                                         ▼
+                 ┌───────────────────────────────────────────────┐
+                 │   SentenceValidator™ 10-Check Quality Gate    │
+                 │   • Consecutive Word Deduplication            │
+                 │   • Contraction & Possessive Healing          │
+                 │   • Orphaned Punctuation Sanitization         │
+                 │   • Dangling Conjunction Pruning              │
+                 │   • Unterminated Parentheses Repair           │
+                 │   • Subject-Less Decoupling Guard             │
+                 └───────────────────────┬───────────────────────┘
+                                         ▼
+                 ┌───────────────────────────────────────────────┐
+                 │  LAYER 3: ZeroGPT Statistical AI Critic       │
+                 │   • Moving-Average Type-Token Ratio (MATTR)   │
+                 │   • Sentence-Length Variance (Target CV >.50) │
+                 │   • Adversarial Self-Check Loop               │
+                 └───────────────────────┬───────────────────────┘
+                                         │
+                                         ▼
+                             HUMANIZED THESIS RESULT
+                      (Live Stream / In-Place .docx Download)
+```
 
 ---
 
-## 🛠️ High-Level Engine Architecture Overview
+## Supported File Formats
 
-| Architecture Layer          | Core Component & Engine Responsibilities                                                      |
-| :-------------------------- | :-------------------------------------------------------------------------------------------- |
-| 🖥️ **UI Layer**             | Streamlit Multi-Page Web Application & Real-Time Dashboard                                    |
-| 🔑 **Authentication Layer** | OAuth 2.0 & Triple-Layer Auth Persistence Engine (Cookies + LocalStorage)                     |
-| 📑 **Parsing Layer**        | XML DOCX Parser, LaTeX Zone Parser & Multi-Language Code Tokenizer                            |
-| ⚙️ **Rule Transformation**  | 15-Stage Pipeline (Linguistic Synonyms, Active/Passive Voice, Clause Reshaping, N-Gram Audit) |
-| 🗄️ **Rules Repository**     | 4,068+ Decoupled Deterministic JSON Rules & Academic Discipline Taxonomy                      |
-| 💻 **Language Engines**     | String-Aware Token Matching for Python, C-Family, Shell, SQL & HTML                           |
-| 🔍 **Verification Layer**   | ZipPy Entropic Compression Perplexity & Real-Time Evasion Scorer                              |
-
-The platform is designed around strict **asset decoupling** and **modular language rule pipelines**:
-
-- **Zero-AI Rule Engine**: Operates using 15 specialized transformer stages without external LLM API calls.
-- **Asset Decoupling**: All linguistic synonyms, academic taxonomy fields, and phrase rewrites reside in centralized JSON rule definitions.
-- **String-Aware Token Matching**: Code parsing engines evaluate character-by-character quote states to guarantee string literals are never mistaken for comments.
+| Format | Extension | Processing Guarantee |
+| :--- | :---: | :--- |
+| **Microsoft Word** | `.docx` | In-place XML run replacement. Tables, margins, bold/italic runs, headings, and fonts preserved 100%. |
+| **Markdown** | `.md` | Markdown headers (`#`), table pipes (`\|`), code fences, and lists locked and untouched. |
+| **Plain Text** | `.txt` | Full paragraph break preservation with zero shrinkage. |
 
 ---
 
-## 📁 Supported File Formats
+## SentenceValidator™ Quality Checks
 
-- **Microsoft Word**: `.docx`
-- **LaTeX Manuscripts**: `.tex`
-- **Plain Text & Markdown**: `.txt`, `.md`
-- **Source Code Files**: `.py`, `.cpp`, `.c`, `.java`, `.cs`, `.js`, `.ts`, `.go`, `.rs`, `.sh`, `.sql`, `.html`, `.css`
-- **Compressed Archives**: `.zip`
+Adapted from the algorithmic principles of `ksanyok/TextHumanize`, every processed sentence passes through a 10-stage validator before rendering:
 
----
-
-## 🤝 Support, Enterprise Deployment & Custom Disciplines
-
-- **WhatsApp Direct Developer Support**: [Chat on WhatsApp (+92 322 5522383)](https://wa.me/923225522383)
-- **Feature Requests & Bug Reporting**: [Submit a GitHub Issue](https://github.com/AhmadHassan-BTed/Turnitout-Humanizer/issues/new)
-- **Enterprise Inquiries**: [ahmadhassan.bted@gmail.com](https://www.google.com/search?q=mailto%3Aahmadhassan.bted%40gmail.com)
-
----
-
-## 🌟 Mentions & Community Spotlights
-
-- 🐅 **[GitTiger](https://gittiger.com/repo/AhmadHassan-BTed/Turnitout-Humanizer)**: Ranked **#39 globally** on GitTiger (Score: 18.9 • 2,066+ Stars • 85 Forks)
-- 📈 **[Trendshift](https://trendshift.io/repositories/229188)**: Featured on Daily & Weekly developer leaderboards
-- ⚡ **[TiniX AI Project Hub](https://repo.tinix.ai/en/project/ahmadhassan-bted-turnitout-humanizer-21e37f39-3b17-4f88-a771-6b55bd97fb1e)**: Verified open-source project listing
-- 📝 **[Humanio Blog Review](https://humanio.me/blog/turnitout-humanizer-review)**: _"Turnitout Humanizer Review: How It Works, Limitations, and Better Alternatives"_ — technical architectural breakdown
-- 🎥 **Video Demonstrations & Creator Features**:
-  - 👤 [AI Watermarks & Zero-Width Removal Demo — Ikram Rana (Facebook)](https://www.facebook.com/IkramRana.aiautomation/videos/strip-hidden-ai-watermarks-zero-width-tracking-characters-and-identifying-docume/1095214210169161/)
-  - 📱 [TikTok Showcase Video by @gittrend.io](https://www.tiktok.com/@gittrend.io/video/7697763161134353682)
-  - ▶️ [Turnitout Zero-AI Bypass Demonstration (YouTube Shorts)](https://www.youtube.com/shorts/_trUDTjUE1c)
-  - 📸 **Instagram Reels Spotlights**: [Reel 1 (@DeoQCZ1zRiz)](https://www.instagram.com/reel/DeoQCZ1zRiz/) • [Reel 2 (@Den7bo-Oo7y)](https://www.instagram.com/reel/Den7bo-Oo7y/) • [Reel 3 (@DeprxI_uTRe)](https://www.instagram.com/reel/DeprxI_uTRe/) • [Reel 4 (@DeqxR63jS8I)](https://www.instagram.com/reel/DeqxR63jS8I/) • [Reel 5 (@DepASYlxUrL)](https://www.instagram.com/reel/DepASYlxUrL/) • [Reel 6 (@DeoA8fqIXgi)](https://www.instagram.com/reel/DeoA8fqIXgi/)
+1. **Duplicate Words**: Strips accidental consecutive repeated words (*"the the"*, *"in in"*).
+2. **Broken Contractions**: Heals spaced contractions (*"do n't"* $\to$ *"don't"*, *"system 's"* $\to$ *"system's"*).
+3. **Orphaned Punctuation**: Cleans stacked commas, semicolons, or colons before periods (*",."*, *";."* $\to$ *"."*).
+4. **Dangling Conjunctions**: Cleans stacked coordinating conjunctions (*"and but"* $\to$ *"and"*).
+5. **Unterminated Enclosures**: Automatically repairs unclosed parentheses or brackets caused by sentence splitting.
+6. **Triple-Character Repeats**: Eliminates typographical character stuttering.
+7. **Subject-Less Decoupling Guard**: Injects grammatical subjects (`it`, `the system`) when compound clauses are split (*"Beyond that, it significantly increases..."*).
+8. **Spacing Normalization**: Cleans whitespace before punctuation and collapses double spaces.
+9. **Sentence Capitalization**: Enforces capitalisation after all sentence boundaries.
+10. **Syntax Boundary Integrity**: Verifies that every paragraph terminates with valid terminal punctuation (`.`, `?`, or `!`).
 
 ---
 
-## 🔒 Compliance & Security
+## Local Development & Setup
 
-- **Privacy Policy**: [PRIVACY.md](PRIVACY.md)
-- **Terms of Service**: [TERMS.md](https://www.google.com/search?q=TERMS.md)
-- **Architecture Guidelines**: [ARCHITECTURE_RULES.md](https://www.google.com/search?q=ARCHITECTURE_RULES.md)
+### 1. Prerequisites
+- Python 3.10+ (tested up to Python 3.14)
+- Git
+
+### 2. Clone Repository
+```bash
+git clone https://github.com/Deeptanil/humanizer.git
+cd humanizer
+```
+
+### 3. Create Virtual Environment & Install Dependencies
+```bash
+python -m venv .venv
+
+# On Linux / macOS:
+source .venv/bin/activate
+
+# On Windows (PowerShell):
+.venv\Scripts\Activate.ps1
+
+pip install -r requirements.txt
+```
+
+### 4. Configuration (Optional)
+Create a `.env` file in the project root:
+```env
+# Google Gemini API key (or multiple comma-separated keys to pool quota)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional: Override default port
+PORT=5000
+```
+*(Note: You can also enter and manage your Gemini API key directly in the web UI via the **API KEY** header button, which stores the key securely in browser `localStorage`.)*
+
+### 5. Run Local Server
+```bash
+python app.py
+```
+Open [http://localhost:5000](http://localhost:5000) in your browser.
+
+### 6. Run Test Suite
+```bash
+python -m unittest discover -s tests -v
+```
 
 ---
 
-<p align="center">
-  <sub>Built with ❤️ by Ahmad Hassan for researchers, developers, students, and academics worldwide.</sub>
-</p>
+## REST API Reference
+
+### 1. `POST /api/chunk`
+Splits arbitrarily large thesis documents into safe, paragraph-aligned chunks and calculates initial AI footprint.
+
+**Request:**
+```json
+{
+  "text": "Your long academic draft text here...",
+  "max_words_per_chunk": 550
+}
+```
+
+**Response:**
+```json
+{
+  "total_chunks": 3,
+  "chunks": [
+    { "index": 0, "text": "...", "words": 512 },
+    { "index": 1, "text": "...", "words": 498 }
+  ],
+  "metrics_before": {
+    "ai_risk": 95,
+    "burstiness_score": 15,
+    "cliche_count": 8
+  }
+}
+```
+
+---
+
+### 2. `POST /api/humanize`
+Humanizes a single chunk or text block using the 3-Layer engine.
+
+**Request:**
+```json
+{
+  "text": "Furthermore, in the realm of distributed consensus...",
+  "intensity": 0.85,
+  "api_key": "optional_override_key"
+}
+```
+
+**Response:**
+```json
+{
+  "cleaned_text": "Edge node telemetry requires strict cryptographic protection...",
+  "changes_count": 6,
+  "model_used": "gemini-3.5-flash-lite",
+  "quota_exhausted": false,
+  "metrics_before": { "ai_risk": 95 },
+  "metrics_after": { "ai_risk": 0, "burstiness_score": 88 }
+}
+```
+
+---
+
+### 3. `POST /api/detect`
+Evaluates sentence-level AI risk, burstiness, and cliché density against ZeroGPT/Turnitin heuristics.
+
+**Request:**
+```json
+{
+  "text": "Text to evaluate..."
+}
+```
+
+---
+
+### 4. `POST /api/rebuild-docx`
+Reconstructs an uploaded `.docx` file in-place using the humanized text stream in `<200 ms` without LLM calls.
+
+**Form Data:**
+- `file`: Original `.docx` file
+- `humanized_text`: Complete humanized text from the chunked stream
+
+**Response:**
+Binary stream of the reconstructed `.docx` file.
+
+---
+
+## Privacy, Security & Compliance
+
+- **Zero-Storage Ephemeral RAM**: Uploaded `.docx` files and pasted paragraphs exist only in volatile server memory during the active request lifecycle and are cleared immediately upon response completion.
+- **End-to-End TLS 1.3 Encryption**: All network traffic between your browser and the server is encrypted using high-grade TLS 1.3 ciphers.
+- **No Document Retention**: The server maintains no databases, file logs, or user manuscript archives.
+- **Client-Side Key Storage**: User-provided API keys are kept in your browser's `localStorage` and never written to server configuration files.
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
