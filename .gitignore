@@ -18,3 +18,5 @@ change_report.md
 .vscode/
 .idea/
 .DS_Store
+
+node_modules/
