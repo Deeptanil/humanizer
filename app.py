@@ -12,7 +12,11 @@ from core.engine import HumanizerEngine
 from core.docx_handler import DocxProcessor
 from core.cleaner import WatermarkSanitizer
 
-app = Flask(__name__, template_folder="web/templates", static_folder="web/static")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "web", "templates")
+STATIC_DIR = os.path.join(BASE_DIR, "web", "static")
+
+app = Flask(__name__, template_folder=TEMPLATE_DIR, static_folder=STATIC_DIR)
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64 MB max upload
 
 engine = HumanizerEngine()
