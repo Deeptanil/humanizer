@@ -27,8 +27,11 @@ SYNONYMS = _load_json("synonyms.json")
 TRANSITIONS = _load_json("transitions.json")
 
 class HumanizerEngine:
-    def __init__(self, seed: int = 42):
-        self.rng = random.Random(seed)
+    def __init__(self, seed: int = None):
+        if seed is not None:
+            self.rng = random.Random(seed)
+        else:
+            self.rng = random.Random()
         self.sanitizer = WatermarkSanitizer()
         self.protector = TokenProtector()
         self.used_transitions = set()
@@ -44,12 +47,57 @@ class HumanizerEngine:
             return replacement[0].upper() + replacement[1:]
         return replacement.lower()
 
+    def _get_synonyms_for_word(self, word: str) -> List[str]:
+        """Looks up synonyms including plural, past tense, and -ing inflections."""
+        lower = word.lower()
+        if lower in SYNONYMS:
+            return SYNONYMS[lower]
+        
+        # Plural -s
+        if lower.endswith('s') and len(lower) > 3:
+            root = lower[:-1]
+            if root in SYNONYMS:
+                return [s + 's' if not s.endswith(('s', 'sh', 'ch', 'x', 'z')) else s + 'es' for s in SYNONYMS[root]]
+        
+        # Plural -es
+        if lower.endswith('es') and len(lower) > 4:
+            root = lower[:-2]
+            if root in SYNONYMS:
+                return [s + 'es' for s in SYNONYMS[root]]
+        
+        # Past tense -ed
+        if lower.endswith('ed') and len(lower) > 4:
+            root = lower[:-2]
+            if root in SYNONYMS:
+                return [s + 'ed' if not s.endswith('e') else s + 'd' for s in SYNONYMS[root]]
+            root_e = lower[:-1]  # like 'created' -> 'create'
+            if root_e in SYNONYMS:
+                return [s + 'ed' if not s.endswith('e') else s + 'd' for s in SYNONYMS[root_e]]
+
+        # Participle -ing
+        if lower.endswith('ing') and len(lower) > 5:
+            root_e = lower[:-3] + 'e'  # like 'analyzing' -> 'analyze'
+            if root_e in SYNONYMS:
+                return [s[:-1] + 'ing' if s.endswith('e') else s + 'ing' for s in SYNONYMS[root_e]]
+            root = lower[:-3]
+            if root in SYNONYMS:
+                return [s[:-1] + 'ing' if s.endswith('e') else s + 'ing' for s in SYNONYMS[root]]
+
+        return []
+
     def _apply_phrase_rewrites(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
         """Replaces known AI cliché phrases and multi-word triggers."""
         changes = []
-        for pattern_str, repl in PHRASES:
-            # Chance to apply based on intensity
-            if self.rng.random() > (0.4 + 0.6 * intensity):
+        # Higher intensity = near 100% replacement rate for cliches
+        fire_rate = min(0.98, 0.75 + (0.25 * intensity))
+
+        for item in PHRASES:
+            if isinstance(item, list) and len(item) == 2:
+                pattern_str, repl = item[0], item[1]
+            else:
+                continue
+
+            if self.rng.random() > fire_rate:
                 continue
 
             pattern = re.compile(pattern_str, re.IGNORECASE)
@@ -59,7 +107,6 @@ class HumanizerEngine:
 
             for match in reversed(matches):
                 orig_text = match.group(0)
-                # Don't touch if inside protected token
                 if "\uE000" in orig_text or "\uE001" in orig_text:
                     continue
                 formatted_repl = self._preserve_case(orig_text, repl)
@@ -75,12 +122,14 @@ class HumanizerEngine:
     def _rotate_transitions(self, text: str, intensity: float) -> Tuple[str, List[Dict[str, str]]]:
         """Rotates overused transition markers to increase discourse variety."""
         changes = []
+        fire_rate = min(0.95, 0.70 + (0.30 * intensity))
+
         for category, markers in TRANSITIONS.items():
             for marker, alternatives in markers.items():
                 pattern = re.compile(r'\b' + re.escape(marker) + r'\b', re.IGNORECASE)
                 matches = list(pattern.finditer(text))
                 for match in reversed(matches):
-                    if self.rng.random() > (0.3 + 0.5 * intensity):
+                    if self.rng.random() > fire_rate:
                         continue
                     orig = match.group(0)
                     avail = [a for a in alternatives if a not in self.used_transitions]
@@ -107,14 +156,14 @@ class HumanizerEngine:
         in-place without altering whitespace, punctuation or protected markers.
         """
         changes = []
-        swap_prob = 0.15 + (intensity * 0.40)
+        # Swap probability: subtle ~ 0.40, balanced ~ 0.65, aggressive ~ 0.85
+        swap_prob = 0.35 + (intensity * 0.50)
 
         def _sub_word(match):
             word = match.group(0)
-            lower = word.lower()
-            if lower in SYNONYMS and self.rng.random() < swap_prob:
-                opts = SYNONYMS[lower]
-                chosen = self.rng.choice(opts)
+            syns = self._get_synonyms_for_word(word)
+            if syns and self.rng.random() < swap_prob:
+                chosen = self.rng.choice(syns)
                 formatted = self._preserve_case(word, chosen)
                 changes.append({
                     "type": "synonym_swap",
@@ -124,8 +173,6 @@ class HumanizerEngine:
                 return formatted
             return word
 
-        # Substitute whole words only
-        # Negative lookahead/behind to skip words inside protected token \uE000...\uE001
         parts = re.split(r'(\uE000[^\uE001]+\uE001)', text)
         for i in range(len(parts)):
             if not parts[i].startswith('\uE000'):
@@ -139,10 +186,9 @@ class HumanizerEngine:
         Combines adjacent short sentences with academic subordinating conjunctions.
         """
         changes = []
-        if intensity < 0.4:
+        if intensity < 0.35:
             return text, changes
 
-        # Split into sentences while keeping punctuation
         sentences = re.split(r'(?<=[.!?])\s+', text)
         if len(sentences) < 2:
             return text, changes
@@ -166,13 +212,12 @@ class HumanizerEngine:
             current_s = sentences[i].strip()
             if i + 1 < len(sentences):
                 next_s = sentences[i + 1].strip()
-                # Skip if sentences have protected tokens
                 if "\uE000" in current_s or "\uE000" in next_s:
                     fused.append(current_s)
                     continue
 
-                if len(current_s) < 80 and len(next_s) < 80 and current_s.endswith('.'):
-                    if self.rng.random() < (0.25 * intensity):
+                if len(current_s) < 90 and len(next_s) < 90 and current_s.endswith('.'):
+                    if self.rng.random() < (0.35 * intensity):
                         connector = self.rng.choice(conjunctions)
                         trimmed_curr = current_s[:-1]
                         lower_next = next_s[0].lower() + next_s[1:]
@@ -204,8 +249,10 @@ class HumanizerEngine:
 
         # 1. Cliché score
         cliche_matches = 0
-        for pattern_str, _ in PHRASES:
-            cliche_matches += len(re.findall(pattern_str, text, re.IGNORECASE))
+        for item in PHRASES:
+            if isinstance(item, list) and len(item) == 2:
+                pattern_str = item[0]
+                cliche_matches += len(re.findall(pattern_str, text, re.IGNORECASE))
 
         # 2. Burstiness (standard deviation of sentence length in words)
         sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
@@ -222,22 +269,19 @@ class HumanizerEngine:
         ttr = unique_words / word_count if word_count > 0 else 0
 
         # Base risk calculation
-        base_risk = 60.0
-        # Cliché penalty
+        base_risk = 55.0
         base_risk += min(45.0, cliche_matches * 9.0)
-        # Low burstiness penalty
         if burstiness < 4.0:
             base_risk += 18.0
         elif burstiness > 8.0:
             base_risk -= 18.0
 
-        # Vocabulary diversity adjustment
         if ttr > 0.65:
             base_risk -= 15.0
         elif ttr < 0.40:
             base_risk += 12.0
 
-        ai_risk = max(5, min(98, int(base_risk)))
+        ai_risk = max(8, min(96, int(base_risk)))
 
         return {
             "words": word_count,
@@ -262,7 +306,6 @@ class HumanizerEngine:
                 "metrics_after": self.calculate_metrics("")
             }
 
-        # Pre-metrics
         metrics_before = self.calculate_metrics(raw_text)
 
         # Stage 1: Inspect and strip invisible zero-width watermarks
@@ -301,7 +344,6 @@ class HumanizerEngine:
         text = re.sub(r'\s+([,.:;?!])', r'\1', text)
         text = re.sub(r'\s{2,}', ' ', text)
 
-        # Post-metrics
         metrics_after = self.calculate_metrics(text)
 
         return {
@@ -313,4 +355,3 @@ class HumanizerEngine:
             "metrics_before": metrics_before,
             "metrics_after": metrics_after
         }
-

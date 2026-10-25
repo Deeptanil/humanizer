@@ -1,95 +1,514 @@
 [
-  ["\\bdelve deep into the multifaceted dimensions of\\b", "examine the details of"],
-  ["\\bdelves deep into the multifaceted dimensions of\\b", "examines the details of"],
-  ["\\bdelve into\\b", "scrutinize"],
-  ["\\bdelving into\\b", "scrutinizing"],
-  ["\\bdelves into\\b", "scrutinizes"],
-  ["\\bdelved into\\b", "scrutinized"],
-  ["\\bplays a pivotal role in illustrating\\b", "clearly shows"],
-  ["\\bplays a pivotal role in\\b", "is central to"],
-  ["\\bplays a pivotal role\\b", "is essential"],
-  ["\\bplays a crucial role\\b", "is fundamental"],
-  ["\\bplays an indispensable role\\b", "is imperative"],
-  ["\\bstands as a testament to\\b", "attests to"],
-  ["\\bstand as a testament to\\b", "attest to"],
-  ["\\bcomprehensive tapestry\\b", "broad spectrum"],
-  ["\\brich tapestry\\b", "diverse spectrum"],
-  ["\\bfosters a deeper understanding\\b", "deepens understanding"],
-  ["\\bfoster a deeper understanding\\b", "deepen understanding"],
-  ["\\bit is important to delve into\\b", "we examine"],
-  ["\\bit is important to note that\\b", "notably,"],
-  ["\\bit is worth noting that\\b", "significantly,"],
-  ["\\bit should be noted that\\b", "noticeably,"],
-  ["\\bit is crucial to understand that\\b", "fundamentally,"],
-  ["\\bin conclusion, it is important to\\b", "to conclude, we"],
-  ["\\bin conclusion\\b", "in summary"],
-  ["\\bto summarize\\b", "in brief"],
-  ["\\bmoreover, in today's fast-paced digital era,?\\b", "today,"],
-  ["\\bin today's fast-paced digital era\\b", "in contemporary practice"],
-  ["\\bin today's digital landscape\\b", "in modern systems"],
-  ["\\bin recent years, there has been an increasing interest in\\b", "recent scholarship has focused on"],
-  ["\\bserves as a critical milestone\\b", "represents a major advance"],
-  ["\\bcannot be overlooked\\b", "demands consideration"],
-  ["\\bultimately, this paradigm shift\\b", "this transition ultimately"],
-  ["\\ba plethora of\\b", "numerous"],
-  ["\\ba myriad of\\b", "an array of"],
-  ["\\bthe interplay between\\b", "the dynamics of"],
-  ["\\bprovides a robust framework\\b", "supplies a systematic basis"],
-  ["\\bprovides valuable insights into\\b", "elucidates"],
-  ["\\boffers valuable insights into\\b", "elucidates"],
-  ["\\bghed light on\\b", "clarifies"],
-  ["\\bshed light on\\b", "clarifies"],
-  ["\\bshedding light on\\b", "clarifying"],
-  ["\\bin order to\\b", "to"],
-  ["\\bdue to the fact that\\b", "because"],
-  ["\\bon the other hand\\b", "conversely"],
-  ["\\bwith respect to\\b", "regarding"],
-  ["\\bin terms of\\b", "concerning"],
-  ["\\bat the end of the day\\b", "ultimately"],
-  ["\\bprevious studies have shown\\b", "prior scholarship indicates"],
-  ["\\bhas been widely studied\\b", "has received substantial inquiry"],
-  ["\\bit has been reported that\\b", "extant literature attests that"],
-  ["\\baccording to recent research\\b", "as supported by contemporary research"],
-  ["\\bis well documented\\b", "is extensively documented"],
-  ["\\bas mentioned earlier\\b", "as previously noted"],
-  ["\\bthe existing literature\\b", "current scholarship"],
-  ["\\bwas carried out\\b", "was conducted"],
-  ["\\bwas conducted\\b", "was performed"],
-  ["\\bby means of\\b", "using"],
-  ["\\btakes into account\\b", "considers"],
-  ["\\btake into account\\b", "consider"],
-  ["\\bis based on\\b", "derives from"],
-  ["\\bare based on\\b", "derive from"],
-  ["\\bthe results indicate that\\b", "the findings suggest that"],
-  ["\\bthe results show that\\b", "our data demonstrates that"],
-  ["\\bit can be seen that\\b", "one observes that"],
-  ["\\bas shown in\\b", "as depicted in"],
-  ["\\bit was found that\\b", "we observed that"],
-  ["\\ba significant increase\\b", "a marked rise"],
-  ["\\ba significant decrease\\b", "a marked reduction"],
-  ["\\bis consistent with\\b", "aligns with"],
-  ["\\bare consistent with\\b", "align with"],
-  ["\\bfurther research is needed\\b", "additional investigation is warranted"],
-  ["\\bfuture work should\\b", "subsequent research may"],
-  ["\\bit is possible that\\b", "plausibly,"],
-  ["\\bit appears that\\b", "apparently,"],
-  ["\\ba large number of\\b", "substantial quantities of"],
-  ["\\ba wide range of\\b", "a broad spectrum of"],
-  ["\\bas a result of\\b", "owing to"],
-  ["\\bin the vicinity of\\b", "near"],
-  ["\\bis characterized by\\b", "exhibits"],
-  ["\\bhas a significant impact on\\b", "substantially alters"],
-  ["\\bhave a significant impact on\\b", "substantially alter"],
-  ["\\bcan be seen as\\b", "represents"],
-  ["\\bis able to\\b", "can"],
-  ["\\bare able to\\b", "can"],
-  ["\\bhas the ability to\\b", "can"],
-  ["\\bplays a part in\\b", "contributes to"],
-  ["\\bgives rise to\\b", "generates"],
-  ["\\bleads to\\b", "produces"],
-  ["\\bbrings about\\b", "causes"],
-  ["\\bholds great promise\\b", "shows strong potential"],
-  ["\\bpaves the way for\\b", "enables"],
-  ["\\ba step forward in\\b", "an advancement in"]
+  [
+    "\\bthe rapid advancement of\\b",
+    "the swift growth of"
+  ],
+  [
+    "\\brapid advancement of\\b",
+    "accelerated development of"
+  ],
+  [
+    "\\bhas revolutionized many industries\\b",
+    "has transformed numerous sectors"
+  ],
+  [
+    "\\bhas revolutionized\\b",
+    "has fundamentally overhauled"
+  ],
+  [
+    "\\bhave revolutionized\\b",
+    "have fundamentally overhauled"
+  ],
+  [
+    "\\bthere are still many challenges that need to be addressed\\b",
+    "significant hurdles remain to be resolved"
+  ],
+  [
+    "\\bthere are still many challenges\\b",
+    "multiple obstacles persist"
+  ],
+  [
+    "\\bneed to be addressed\\b",
+    "warrant careful resolution"
+  ],
+  [
+    "\\bneeds to be addressed\\b",
+    "warrants careful resolution"
+  ],
+  [
+    "\\bin this paper, we explore\\b",
+    "the present work investigates"
+  ],
+  [
+    "\\bin this study, we explore\\b",
+    "this investigation evaluates"
+  ],
+  [
+    "\\bin this paper, we present\\b",
+    "this treatise delineates"
+  ],
+  [
+    "\\bin this paper, we propose\\b",
+    "the present article advances"
+  ],
+  [
+    "\\bin this work, we propose\\b",
+    "this contribution advances"
+  ],
+  [
+    "\\bin this research, we\\b",
+    "in the current inquiry, we"
+  ],
+  [
+    "\\bdelve deep into the multifaceted dimensions of\\b",
+    "examine the details of"
+  ],
+  [
+    "\\bdelves deep into the multifaceted dimensions of\\b",
+    "examines the details of"
+  ],
+  [
+    "\\bdelve deep into\\b",
+    "examine closely"
+  ],
+  [
+    "\\bdelving deep into\\b",
+    "closely examining"
+  ],
+  [
+    "\\bdelve into\\b",
+    "investigate"
+  ],
+  [
+    "\\bdelving into\\b",
+    "scrutinizing"
+  ],
+  [
+    "\\bdelves into\\b",
+    "explores"
+  ],
+  [
+    "\\bdelved into\\b",
+    "examined"
+  ],
+  [
+    "\\bplays a pivotal role in illustrating\\b",
+    "clearly shows"
+  ],
+  [
+    "\\bplays a pivotal role in\\b",
+    "is central to"
+  ],
+  [
+    "\\bplays a pivotal role\\b",
+    "is fundamental"
+  ],
+  [
+    "\\bplays a crucial role in\\b",
+    "serves a vital function in"
+  ],
+  [
+    "\\bplays a crucial role\\b",
+    "is of paramount importance"
+  ],
+  [
+    "\\bplays a key role in\\b",
+    "is instrumental to"
+  ],
+  [
+    "\\bplays an essential role in\\b",
+    "is foundational to"
+  ],
+  [
+    "\\bstands as a testament to\\b",
+    "attests to"
+  ],
+  [
+    "\\bstand as a testament to\\b",
+    "attest to"
+  ],
+  [
+    "\\bcomprehensive tapestry\\b",
+    "broad spectrum"
+  ],
+  [
+    "\\brich tapestry\\b",
+    "diverse spectrum"
+  ],
+  [
+    "\\bfosters a deeper understanding\\b",
+    "deepens comprehension"
+  ],
+  [
+    "\\bfoster a deeper understanding\\b",
+    "deepen comprehension"
+  ],
+  [
+    "\\bit is important to delve into\\b",
+    "we examine"
+  ],
+  [
+    "\\bit is important to note that\\b",
+    "notably,"
+  ],
+  [
+    "\\bit is worth noting that\\b",
+    "significantly,"
+  ],
+  [
+    "\\bit should be noted that\\b",
+    "noticeably,"
+  ],
+  [
+    "\\bit is crucial to understand that\\b",
+    "fundamentally,"
+  ],
+  [
+    "\\bit is essential to highlight that\\b",
+    "crucially,"
+  ],
+  [
+    "\\bit is vital to consider\\b",
+    "one must weigh"
+  ],
+  [
+    "\\bit is imperative to\\b",
+    "one must"
+  ],
+  [
+    "\\bin conclusion, it is important to\\b",
+    "in summary, we"
+  ],
+  [
+    "\\bin conclusion\\b",
+    "in summary"
+  ],
+  [
+    "\\bto summarize\\b",
+    "in brief"
+  ],
+  [
+    "\\bmoreover, in today's fast-paced digital era,?\\b",
+    "today,"
+  ],
+  [
+    "\\bin today's fast-paced digital era\\b",
+    "in contemporary contexts"
+  ],
+  [
+    "\\bin today's digital landscape\\b",
+    "in modern computing"
+  ],
+  [
+    "\\bin today's interconnected world\\b",
+    "in contemporary society"
+  ],
+  [
+    "\\bin recent years, there has been an increasing interest in\\b",
+    "recent scholarship has heavily emphasized"
+  ],
+  [
+    "\\bserves as a critical milestone\\b",
+    "represents a major advance"
+  ],
+  [
+    "\\bcannot be overlooked\\b",
+    "demands consideration"
+  ],
+  [
+    "\\bultimately, this paradigm shift\\b",
+    "this transition ultimately"
+  ],
+  [
+    "\\ba plethora of\\b",
+    "numerous"
+  ],
+  [
+    "\\ba myriad of\\b",
+    "an array of"
+  ],
+  [
+    "\\bthe interplay between\\b",
+    "the dynamics of"
+  ],
+  [
+    "\\bprovides a robust framework\\b",
+    "supplies a systematic basis"
+  ],
+  [
+    "\\bprovides valuable insights into\\b",
+    "elucidates"
+  ],
+  [
+    "\\boffers valuable insights into\\b",
+    "elucidates"
+  ],
+  [
+    "\\bshed light on\\b",
+    "clarifies"
+  ],
+  [
+    "\\bsheds light on\\b",
+    "clarifies"
+  ],
+  [
+    "\\bshedding light on\\b",
+    "clarifying"
+  ],
+  [
+    "\\bin order to\\b",
+    "to"
+  ],
+  [
+    "\\bdue to the fact that\\b",
+    "because"
+  ],
+  [
+    "\\bon the other hand\\b",
+    "conversely"
+  ],
+  [
+    "\\bwith respect to\\b",
+    "regarding"
+  ],
+  [
+    "\\bin terms of\\b",
+    "concerning"
+  ],
+  [
+    "\\bat the end of the day\\b",
+    "ultimately"
+  ],
+  [
+    "\\bprevious studies have shown\\b",
+    "prior scholarship indicates"
+  ],
+  [
+    "\\bhas been widely studied\\b",
+    "has received substantial inquiry"
+  ],
+  [
+    "\\bit has been reported that\\b",
+    "extant literature attests that"
+  ],
+  [
+    "\\baccording to recent research\\b",
+    "contemporary research corroborates that"
+  ],
+  [
+    "\\bis well documented\\b",
+    "is extensively recorded"
+  ],
+  [
+    "\\bas mentioned earlier\\b",
+    "as previously noted"
+  ],
+  [
+    "\\bthe existing literature\\b",
+    "current scholarship"
+  ],
+  [
+    "\\bwas carried out\\b",
+    "was conducted"
+  ],
+  [
+    "\\bwas conducted\\b",
+    "was performed"
+  ],
+  [
+    "\\bby means of\\b",
+    "using"
+  ],
+  [
+    "\\btakes into account\\b",
+    "considers"
+  ],
+  [
+    "\\btake into account\\b",
+    "consider"
+  ],
+  [
+    "\\bis based on\\b",
+    "derives from"
+  ],
+  [
+    "\\bare based on\\b",
+    "derive from"
+  ],
+  [
+    "\\bthe results indicate that\\b",
+    "the findings suggest that"
+  ],
+  [
+    "\\bthe results show that\\b",
+    "our data demonstrates that"
+  ],
+  [
+    "\\bit can be seen that\\b",
+    "one observes that"
+  ],
+  [
+    "\\bas shown in\\b",
+    "as depicted in"
+  ],
+  [
+    "\\bit was found that\\b",
+    "we observed that"
+  ],
+  [
+    "\\ba significant increase\\b",
+    "a marked rise"
+  ],
+  [
+    "\\ba significant decrease\\b",
+    "a marked reduction"
+  ],
+  [
+    "\\bis consistent with\\b",
+    "aligns with"
+  ],
+  [
+    "\\bare consistent with\\b",
+    "align with"
+  ],
+  [
+    "\\bfurther research is needed\\b",
+    "additional investigation is warranted"
+  ],
+  [
+    "\\bfuture work should\\b",
+    "subsequent research may"
+  ],
+  [
+    "\\bit is possible that\\b",
+    "plausibly,"
+  ],
+  [
+    "\\bit appears that\\b",
+    "apparently,"
+  ],
+  [
+    "\\ba large number of\\b",
+    "substantial quantities of"
+  ],
+  [
+    "\\ba wide range of\\b",
+    "a broad spectrum of"
+  ],
+  [
+    "\\bas a result of\\b",
+    "owing to"
+  ],
+  [
+    "\\bin the vicinity of\\b",
+    "near"
+  ],
+  [
+    "\\bis characterized by\\b",
+    "exhibits"
+  ],
+  [
+    "\\bhas a significant impact on\\b",
+    "substantially alters"
+  ],
+  [
+    "\\bhave a significant impact on\\b",
+    "substantially alter"
+  ],
+  [
+    "\\bcan be seen as\\b",
+    "represents"
+  ],
+  [
+    "\\bis able to\\b",
+    "can"
+  ],
+  [
+    "\\bare able to\\b",
+    "can"
+  ],
+  [
+    "\\bhas the ability to\\b",
+    "can"
+  ],
+  [
+    "\\bplays a part in\\b",
+    "contributes to"
+  ],
+  [
+    "\\bgives rise to\\b",
+    "generates"
+  ],
+  [
+    "\\bleads to\\b",
+    "produces"
+  ],
+  [
+    "\\bbrings about\\b",
+    "causes"
+  ],
+  [
+    "\\bholds great promise\\b",
+    "shows strong potential"
+  ],
+  [
+    "\\bpaves the way for\\b",
+    "enables"
+  ],
+  [
+    "\\ba step forward in\\b",
+    "an advancement in"
+  ],
+  [
+    "\\bis evident that\\b",
+    "becomes clear that"
+  ],
+  [
+    "\\bit is evident that\\b",
+    "evidently,"
+  ],
+  [
+    "\\bit is obvious that\\b",
+    "clearly,"
+  ],
+  [
+    "\\bwith the aim of\\b",
+    "aiming to"
+  ],
+  [
+    "\\bfor the purpose of\\b",
+    "to"
+  ],
+  [
+    "\\ba variety of\\b",
+    "sundry"
+  ],
+  [
+    "\\ba substantial amount of\\b",
+    "considerable"
+  ],
+  [
+    "\\bdraws attention to\\b",
+    "highlights"
+  ],
+  [
+    "\\bhighlights the importance of\\b",
+    "underscores"
+  ],
+  [
+    "\\bhas become increasingly important\\b",
+    "has gained central prominence"
+  ],
+  [
+    "\\bhas become an increasingly\\b",
+    "has evolved into an especially"
+  ],
+  [
+    "\\bemerged as a popular\\b",
+    "gained widespread traction as a"
+  ],
+  [
+    "\\bplays an essential part\\b",
+    "serves a vital role"
+  ]
 ]
-

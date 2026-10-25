@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turnitout Humanizer Studio — Academic Thesis Edition</title>
+  <title>Turnitout Humanizer — Academic Thesis Studio</title>
   <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,38 +25,30 @@
       </div>
     </header>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
-      <button class="nav-tab active" data-tab="tab-text">📝 Interactive Text Studio</button>
-      <button class="nav-tab" data-tab="tab-docx">📄 Google Docs / .docx Uploader</button>
-      <button class="nav-tab" data-tab="tab-watermark">🔍 Zero-Width Watermark Scanner</button>
-      <button class="nav-tab" data-tab="tab-guide">📖 How to Humanize Your Thesis</button>
-    </nav>
-
-    <!-- TAB 1: Text Studio -->
-    <section id="tab-text" class="tab-content active">
+    <!-- Main Text Studio -->
+    <main class="text-studio">
       <div class="studio-controls">
         <div class="control-group">
           <label for="intensitySlider" class="control-label">
-            Evasion Intensity: <span id="intensityLabel" class="badge-highlight">Balanced (60%)</span>
+            Evasion Intensity: <span id="intensityLabel" class="badge-highlight">Balanced (65%)</span>
           </label>
           <div class="slider-wrapper">
             <span class="slider-hint">Subtle</span>
-            <input type="range" id="intensitySlider" min="20" max="95" value="60" step="5">
+            <input type="range" id="intensitySlider" min="20" max="95" value="65" step="5">
             <span class="slider-hint">Aggressive</span>
           </div>
         </div>
         <div class="control-actions">
           <button id="loadSampleBtn" class="btn-secondary btn-sm">Load Thesis Sample</button>
           <button id="clearBtn" class="btn-secondary btn-sm">Clear</button>
-          <button id="humanizeBtn" class="btn-primary">⚡ Humanize Text</button>
+          <button id="humanizeBtn" class="btn-primary">⚡ Humanize Thesis Text</button>
         </div>
       </div>
 
-      <!-- Metrics Bar -->
+      <!-- Metrics HUD Bar -->
       <div id="metricsBar" class="metrics-bar" style="display: none;">
         <div class="metric-card">
-          <span class="metric-title">AI Detection Risk</span>
+          <span class="metric-title">Estimated AI Risk</span>
           <div class="metric-value-row">
             <span id="metricAiBefore" class="risk-badge risk-high">90%</span>
             <span class="metric-arrow">➔</span>
@@ -77,7 +69,7 @@
         </div>
       </div>
 
-      <!-- Editor Panes -->
+      <!-- Editor Panes (Side-by-Side) -->
       <div class="editor-grid">
         <div class="editor-pane">
           <div class="pane-header">
@@ -89,117 +81,23 @@
 
         <div class="editor-pane">
           <div class="pane-header">
-            <span>Humanized Result (Citations & Equations Intact)</span>
+            <span>Humanized Result (Citations & Equations Preserved)</span>
             <div class="pane-tools">
               <span id="outputWordCount" class="word-counter">0 words</span>
               <button id="copyBtn" class="btn-copy btn-sm">📋 Copy Clean Text</button>
             </div>
           </div>
-          <div id="diffView" class="diff-view" style="display: none;"></div>
           <textarea id="outputText" readonly placeholder="Humanized text will appear here with zero generative AI footprint..."></textarea>
         </div>
       </div>
-    </section>
-
-    <!-- TAB 2: DOCX Studio -->
-    <section id="tab-docx" class="tab-content">
-      <div class="docx-card">
-        <div class="docx-intro">
-          <h2>Google Docs & Word (.docx) Direct Processor</h2>
-          <p>Processes your thesis file in-memory while preserving all fonts, headings, tables, equations, footnotes, and XML layout 100% untouched.</p>
-        </div>
-
-        <div class="steps-guide">
-          <div class="step-item">
-            <div class="step-num">1</div>
-            <div><strong>In Google Docs:</strong> Click <code>File</code> ➔ <code>Download</code> ➔ <code>Microsoft Word (.docx)</code></div>
-          </div>
-          <div class="step-item">
-            <div class="step-num">2</div>
-            <div><strong>Upload below:</strong> Choose your downloaded <code>.docx</code> thesis file</div>
-          </div>
-          <div class="step-item">
-            <div class="step-num">3</div>
-            <div><strong>Download & Re-upload:</strong> Download the sanitized <code>.docx</code>, open it or re-upload to Google Docs</div>
-          </div>
-        </div>
-
-        <form id="docxUploadForm" class="upload-zone">
-          <input type="file" id="docxFileInput" accept=".docx" style="display: none;">
-          <div class="upload-box" id="dropArea">
-            <div class="upload-icon">📁</div>
-            <h3>Drag & Drop your Thesis .docx file here</h3>
-            <p>or click to browse your files</p>
-            <div id="selectedFileName" class="selected-file"></div>
-          </div>
-
-          <div class="docx-options">
-            <label for="docxIntensity">Intensity:</label>
-            <select id="docxIntensity" class="form-select">
-              <option value="0.35">Subtle (Careful preservation)</option>
-              <option value="0.60" selected>Balanced (Recommended for academic theses)</option>
-              <option value="0.85">Aggressive (Maximum k-gram & perplexity shift)</option>
-            </select>
-            <button type="submit" id="processDocxBtn" class="btn-primary" disabled>⚡ Humanize Document & Download</button>
-          </div>
-        </form>
-
-        <div id="docxStatus" class="status-box" style="display: none;"></div>
-      </div>
-    </section>
-
-    <!-- TAB 3: Watermark Scanner -->
-    <section id="tab-watermark" class="tab-content">
-      <div class="scanner-card">
-        <h2>Invisible Zero-Width & AI Watermark Scanner</h2>
-        <p>AI tools like ChatGPT, Claude, and Gemini inject invisible unicode characters (U+200B, U+200C, U+2060) to secretly track AI-generated text. Paste any paragraph below to reveal hidden characters.</p>
-
-        <textarea id="scannerInput" placeholder="Paste suspicious text here to audit for invisible watermarks..."></textarea>
-        <button id="scanBtn" class="btn-primary">🔍 Scan for Hidden Watermarks</button>
-
-        <div id="scannerResult" class="scanner-results" style="display: none;"></div>
-      </div>
-    </section>
-
-    <!-- TAB 4: Thesis Guide -->
-    <section id="tab-guide" class="tab-content">
-      <div class="guide-card">
-        <h2>How to Safely Humanize an Academic Thesis</h2>
-        <div class="guide-grid">
-          <div class="guide-box">
-            <h3>1. The Winnowing Algorithm</h3>
-            <p>Turnitin and iThenticate use the <strong>Winnowing algorithm</strong> with <code>k=5</code> word sequences and Karp-Rabin rolling hashes. Any unbroken chain of 8+ words is flagged. Turnitout systematically alters 5-word windows using scholarly synonyms and clause shifts so that no 8-word sequence remains identical.</p>
-          </div>
-          <div class="guide-box">
-            <h3>2. AI Detectors (Perplexity & Burstiness)</h3>
-            <p>Detectors like GPTZero and Turnitin AI do NOT detect "truth"; they evaluate <strong>perplexity</strong> (how predictable words are) and <strong>burstiness</strong> (variation in sentence lengths). AI generates flat, uniform sentences. Turnitout introduces rhythmic variation and replaces high-probability AI clichés.</p>
-          </div>
-          <div class="guide-box">
-            <h3>3. What Stays 100% Intact</h3>
-            <p>Unlike ChatGPT or commercial paraphrasers, Turnitout uses <strong>zero generative AI</strong>. That means:
-              <ul>
-                <li>Facts, citations, and dates never change.</li>
-                <li>Equations, math symbols ($...$), and tables are protected.</li>
-                <li>IEEE [1] and APA (Smith, 2024) citations remain exact.</li>
-                <li>No hallucinations or fabricated references.</li>
-              </ul>
-            </p>
-          </div>
-          <div class="guide-box">
-            <h3>4. Best Practice for Thesis Defense</h3>
-            <p>Always review the humanized output chapter-by-chapter. Use the <strong>Balanced (60%)</strong> mode for literature review and discussion sections, and keep your custom experimental parameters exact.</p>
-          </div>
-        </div>
-      </div>
-    </section>
+    </main>
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span>Turnitout Academic Engine v2.6 • 100% Local & Private • Zero Generative AI</span>
+      <span>Turnitout Academic Engine v2.6 • 100% Deterministic & Private • Zero Generative AI</span>
     </footer>
   </div>
 
   <script src="/static/script.js"></script>
 </body>
 </html>
-

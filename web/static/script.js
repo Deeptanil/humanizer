@@ -6,22 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.toggle("theme-dark");
   });
 
-  // Tab Navigation
-  const tabs = document.querySelectorAll(".nav-tab");
-  const tabContents = document.querySelectorAll(".tab-content");
-
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      tabContents.forEach(c => c.classList.remove("active"));
-
-      tab.classList.add("active");
-      const targetId = tab.getAttribute("data-tab");
-      document.getElementById(targetId).classList.add("active");
-    });
-  });
-
-  // Elements - Text Studio
+  // Controls & Elements
   const intensitySlider = document.getElementById("intensitySlider");
   const intensityLabel = document.getElementById("intensityLabel");
   const inputText = document.getElementById("inputText");
@@ -51,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function countWords(str) {
-    if (!str.trim()) return 0;
+    if (!str || !str.trim()) return 0;
     return str.trim().split(/\s+/).length;
   }
 
@@ -59,8 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
     inputWordCount.textContent = `${countWords(inputText.value)} words`;
   });
 
-  // Sample Thesis Text
-  const SAMPLE_THESIS = `In conclusion, it is important to delve into the comprehensive tapestry of modern artificial intelligence methodologies. This study plays a pivotal role in illustrating that algorithmic frameworks stand as a testament to scientific innovation [1]. Furthermore, the interplay between stochastic optimization and computational scalability provides a robust framework for empirical inquiries. Moreover, in today's fast-paced digital era, the profound impact of automated systems cannot be overlooked [2]. The results indicate that the method converges rapidly. It requires fewer iterations than traditional heuristics. Future work should investigate these dynamics further.`;
+  // Realistic Thesis Sample
+  const SAMPLE_THESIS = `The rapid advancement of artificial intelligence has revolutionized many industries. However, there are still many challenges that need to be addressed. In this paper, we explore several solutions to improve the accuracy and efficiency of modern systems. Furthermore, our findings indicate that traditional methods are no longer sufficient [1]. Therefore, this study plays a pivotal role in illustrating the need for novel frameworks to foster a deeper understanding of computational scalability.`;
 
   loadSampleBtn.addEventListener("click", () => {
     inputText.value = SAMPLE_THESIS;
@@ -79,12 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
   humanizeBtn.addEventListener("click", async () => {
     const text = inputText.value.trim();
     if (!text) {
-      alert("Please paste thesis text to humanize.");
+      alert("Please paste your thesis text to humanize.");
       return;
     }
 
     humanizeBtn.disabled = true;
-    humanizeBtn.textContent = "⚡ Processing...";
+    humanizeBtn.textContent = "⚡ Transforming text...";
 
     try {
       const intensity = parseInt(intensitySlider.value, 10) / 100.0;
@@ -93,24 +78,29 @@ document.addEventListener("DOMContentLoaded", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, intensity })
       });
+
+      if (!res.ok) {
+        throw new Error(`Server returned status ${res.status}`);
+      }
+
       const data = await res.json();
 
       outputText.value = data.cleaned_text;
       outputWordCount.textContent = `${countWords(data.cleaned_text)} words`;
 
-      // Update metrics
+      // Update metrics HUD
       metricAiBefore.textContent = `${data.metrics_before.ai_risk}%`;
       metricAiAfter.textContent = `${data.metrics_after.ai_risk}%`;
-      metricCliches.textContent = `${data.metrics_before.cliche_count} removed`;
-      metricWatermarks.textContent = `${data.watermarks_found} Purged`;
-      metricChanges.textContent = `${data.changes_count} sequences`;
+      metricCliches.textContent = `${data.metrics_before.cliche_count} purged`;
+      metricWatermarks.textContent = `${data.watermarks_found} purged`;
+      metricChanges.textContent = `${data.changes_count} shifts`;
 
       metricsBar.style.display = "grid";
     } catch (err) {
-      alert("Error processing text: " + err);
+      alert("Error processing text: " + err.message);
     } finally {
       humanizeBtn.disabled = false;
-      humanizeBtn.textContent = "⚡ Humanize Text";
+      humanizeBtn.textContent = "⚡ Humanize Thesis Text";
     }
   });
 
@@ -120,131 +110,13 @@ document.addEventListener("DOMContentLoaded", () => {
     navigator.clipboard.writeText(outputText.value).then(() => {
       const orig = copyBtn.textContent;
       copyBtn.textContent = "✅ Copied!";
-      setTimeout(() => { copyBtn.textContent = orig; }, 1800);
+      copyBtn.style.backgroundColor = "var(--success)";
+      copyBtn.style.color = "#ffffff";
+      setTimeout(() => {
+        copyBtn.textContent = orig;
+        copyBtn.style.backgroundColor = "";
+        copyBtn.style.color = "";
+      }, 1800);
     });
-  });
-
-  // DOCX Drag & Drop Upload
-  const dropArea = document.getElementById("dropArea");
-  const docxFileInput = document.getElementById("docxFileInput");
-  const selectedFileName = document.getElementById("selectedFileName");
-  const processDocxBtn = document.getElementById("processDocxBtn");
-  const docxUploadForm = document.getElementById("docxUploadForm");
-  const docxIntensity = document.getElementById("docxIntensity");
-  const docxStatus = document.getElementById("docxStatus");
-
-  let currentDocxFile = null;
-
-  dropArea.addEventListener("click", () => docxFileInput.click());
-
-  dropArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropArea.classList.add("dragover");
-  });
-
-  dropArea.addEventListener("dragleave", () => {
-    dropArea.classList.remove("dragover");
-  });
-
-  dropArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropArea.classList.remove("dragover");
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleDocxSelect(e.dataTransfer.files[0]);
-    }
-  });
-
-  docxFileInput.addEventListener("change", (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleDocxSelect(e.target.files[0]);
-    }
-  });
-
-  function handleDocxSelect(file) {
-    if (!file.name.endsWith(".docx")) {
-      alert("Please upload a .docx Microsoft Word file.");
-      return;
-    }
-    currentDocxFile = file;
-    selectedFileName.textContent = `Selected: ${file.name} (${Math.round(file.size / 1024)} KB)`;
-    processDocxBtn.disabled = false;
-  }
-
-  docxUploadForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    if (!currentDocxFile) return;
-
-    processDocxBtn.disabled = true;
-    processDocxBtn.textContent = "⏳ Humanizing Document in-place...";
-
-    const formData = new FormData();
-    formData.append("file", currentDocxFile);
-    formData.append("intensity", docxIntensity.value);
-
-    try {
-      const res = await fetch("/api/upload-docx", {
-        method: "POST",
-        body: formData
-      });
-
-      if (!res.ok) throw new Error("Failed to process document");
-
-      const blob = await res.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = downloadUrl;
-      a.download = `Humanized_${currentDocxFile.name}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-
-      alert(`✅ Success! Humanized_${currentDocxFile.name} downloaded with all original formatting preserved.`);
-    } catch (err) {
-      alert("Error processing document: " + err.message);
-    } finally {
-      processDocxBtn.disabled = false;
-      processDocxBtn.textContent = "⚡ Humanize Document & Download";
-    }
-  });
-
-  // Zero-Width Scanner
-  const scannerInput = document.getElementById("scannerInput");
-  const scanBtn = document.getElementById("scanBtn");
-  const scannerResult = document.getElementById("scannerResult");
-
-  scanBtn.addEventListener("click", async () => {
-    const text = scannerInput.value;
-    if (!text.trim()) {
-      alert("Please paste text to scan.");
-      return;
-    }
-
-    const res = await fetch("/api/inspect-watermark", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-    const data = await res.json();
-
-    if (data.total_watermarks === 0) {
-      scannerResult.innerHTML = `
-        <h3 style="color: var(--success);">✅ Clean Text Detected</h3>
-        <p>No invisible zero-width tracking characters or hidden watermarks were found.</p>
-      `;
-    } else {
-      let list = "";
-      for (const [charName, count] of Object.entries(data.details)) {
-        list += `<li><strong>${charName}:</strong> ${count} found</li>`;
-      }
-      scannerResult.innerHTML = `
-        <h3 style="color: var(--danger);">🚨 ${data.total_watermarks} Hidden Tracking Characters Found!</h3>
-        <p>These hidden unicode characters trigger AI detectors and identify generated text:</p>
-        <ul style="margin: 10px 0 10px 20px;">${list}</ul>
-        <p><em>Use the Text Studio to purge them instantly.</em></p>
-      `;
-    }
-    scannerResult.style.display = "block";
   });
 });
-
