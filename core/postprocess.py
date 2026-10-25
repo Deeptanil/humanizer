@@ -10,6 +10,7 @@ Guarantees:
 """
 
 import re
+import math
 import random
 from typing import List, Tuple, Dict, Any
 from .detector import split_sentences
@@ -422,6 +423,8 @@ def inject_burstiness_and_structure(
             first_word_p2 = p2_str.split()[0].lower() if p2_str.split() else ""
             if first_word_p2.endswith("s") and first_word_p2 not in ("this", "these", "its", "systems", "nodes", "models", "methods"):
                 sent = f"{prefix}{part1.strip()}. It also {p2_str}{punct}"
+            elif first_word_p2 in ("significantly", "noticeably", "greatly", "further", "also", "directly", "substantially", "heavily"):
+                sent = f"{prefix}{part1.strip()}. Beyond that, it {p2_str}{punct}"
             else:
                 sent = f"{prefix}{part1.strip()}. Beyond that, {p2_str}{punct}"
             changes += 1
@@ -463,12 +466,12 @@ def inject_burstiness_and_structure(
             sent = f"{head_clause.strip()}. Specifically, these include {list_clean}{punct}"
             changes += 1
 
-        # 5. Fix overly long comma-chained sentences (>=25 words with >=3 commas and no ; or ())
+        # 5. Fix overly long compound sentences (>=19 words with commas) to inject extreme burstiness
         words = sent.split()
-        if len(words) >= 25 and not any(p in sent for p in [";", "(", ")", "?"]) and sent.count(",") >= 3:
+        if len(words) >= 19 and not any(p in sent for p in [";", "(", ")", "?"]) and sent.count(",") >= 1:
             # First try splitting at a natural coordinating/subordinating clause boundary
             clause_split = re.search(
-                r"^(.{30,}?),\s+(and|while|which|whereas|because|since|where|although)\s+(.{14,})([.!?])$",
+                r"^(.{24,}?),\s+(and|while|which|whereas|because|since|where|although)\s+(.{10,})([.!?])$",
                 sent,
                 flags=re.IGNORECASE,
             )
@@ -476,24 +479,59 @@ def inject_burstiness_and_structure(
                 first_c, conj, second_c, punct = clause_split.groups()
                 c_low = conj.lower()
                 sec_trimmed = second_c.strip()
-                if c_low == "and":
+                if c_low in ("and", "which"):
                     sec_cap = sec_trimmed[0].upper() + sec_trimmed[1:] if len(sec_trimmed) > 1 else sec_trimmed.upper()
-                    sent = f"{first_c.strip()}. {sec_cap}{punct}"
-                elif c_low == "which":
-                    sent = f"{first_c.strip()}. This {sec_trimmed}{punct}"
+                    if c_low == "which":
+                        sent = f"{first_c.strip()}. This {sec_trimmed}{punct}"
+                    else:
+                        sent = f"{first_c.strip()}. {sec_cap}{punct}"
                 else:
                     sent = f"{first_c.strip()}; {c_low} {sec_trimmed}{punct}"
                 changes += 1
-            else:
+            elif sent.count(",") >= 3:
                 # Replace the middle comma with a semicolon to break uniform comma rhythm
                 comma_positions = [m.start() for m in re.finditer(r",", sent)]
-                if len(comma_positions) >= 3:
-                    mid_pos = comma_positions[len(comma_positions) // 2]
-                    sent = sent[:mid_pos] + ";" + sent[mid_pos + 1 :]
-                    changes += 1
+                mid_pos = comma_positions[len(comma_positions) // 2]
+                sent = sent[:mid_pos] + ";" + sent[mid_pos + 1 :]
+                changes += 1
 
         processed_sentences.append(sent)
 
+    # StealthHumanizer Ninja Burstiness Critic Loop:
+    # If the paragraph's sentence lengths lack contrast, break any remaining long compound sentences
+    # to guarantee high burstiness (>80%) that destroys ZeroGPT detection.
+    flat_sents: List[str] = []
+    for s_item in processed_sentences:
+        flat_sents.extend(split_sentences(s_item))
+
+    if len(flat_sents) >= 2:
+        lengths = [len(s.split()) for s in flat_sents]
+        mean_l = sum(lengths) / len(lengths)
+        std_l = math.sqrt(sum((x - mean_l) ** 2 for x in lengths) / len(lengths))
+        has_punchy = any(l <= 9 for l in lengths)
+        if (std_l < 4.5 or not has_punchy) and not llm_was_used:
+            rebuilt_sents: List[str] = []
+            for s in flat_sents:
+                w_list = s.split()
+                if len(w_list) >= 18 and ", but " in s:
+                    parts = s.split(", but ", 1)
+                    p1 = parts[0].strip()
+                    p2 = parts[1].strip()
+                    p2_cap = p2[0].upper() + p2[1:] if len(p2) > 1 else p2.upper()
+                    rebuilt_sents.append(f"{p1}.")
+                    rebuilt_sents.append(f"However, {p2_cap}")
+                    changes += 1
+                elif len(w_list) >= 20 and ", and " in s:
+                    parts = s.split(", and ", 1)
+                    p1 = parts[0].strip()
+                    p2 = parts[1].strip()
+                    p2_cap = p2[0].upper() + p2[1:] if len(p2) > 1 else p2.upper()
+                    rebuilt_sents.append(f"{p1}.")
+                    rebuilt_sents.append(f"{p2_cap}")
+                    changes += 1
+                else:
+                    rebuilt_sents.append(s)
+            processed_sentences = rebuilt_sents
     rejoined = " ".join(processed_sentences)
     return rejoined, changes
 

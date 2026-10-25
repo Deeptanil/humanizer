@@ -460,7 +460,13 @@ class HumanizerEngine:
         final_text = self.protector.restore(final_text)
 
         metrics_after = self.calculate_metrics(final_text)
-        primary_model = models_used[0] if models_used else "deterministic-fallback"
+        primary_model = models_used[0] if models_used else "offline-linguistic"
+
+        quota_exhausted = any(
+            bool(str(a.get("status", "")).startswith("failed_429"))
+            and ("daily" in str(a.get("error", "")).lower() or "per day" in str(a.get("error", "")).lower() or "quota" in str(a.get("error", "")).lower())
+            for a in waterfall_attempts
+        )
 
         return {
             "cleaned_text": final_text.strip(),
@@ -469,6 +475,7 @@ class HumanizerEngine:
             "changes_count": len(all_changes),
             "changes": all_changes,
             "model_used": primary_model,
+            "quota_exhausted": quota_exhausted,
             "waterfall_attempts": waterfall_attempts,
             "metrics_before": metrics_before,
             "metrics_after": metrics_after,

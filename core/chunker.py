@@ -45,7 +45,7 @@ def is_heading_line(line: str) -> bool:
     return False
 
 
-def split_oversized_paragraph(paragraph: str, max_words: int = 280) -> List[str]:
+def split_oversized_paragraph(paragraph: str, max_words: int = 650) -> List[str]:
     """
     If a single paragraph exceeds `max_words`, splits it cleanly on sentence boundaries
     into sub-blocks of ~max_words so it never overflows LLM token windows.
@@ -78,11 +78,11 @@ def split_oversized_paragraph(paragraph: str, max_words: int = 280) -> List[str]
     return blocks
 
 
-def chunk_document(text: str, max_words_per_chunk: int = 260) -> List[Dict[str, Any]]:
+def chunk_document(text: str, max_words_per_chunk: int = 550) -> List[Dict[str, Any]]:
     """
     Splits a full thesis or long document into ordered chunks.
-    Each chunk contains a list of line items (either locked headings/blank lines or prose paragraphs)
-    totaling up to `max_words_per_chunk` words.
+    Accumulates complete paragraphs without ever chopping inside a paragraph
+    unless an individual paragraph alone exceeds `max_words_per_chunk`.
     """
     if not text or not text.strip():
         return []
@@ -112,7 +112,7 @@ def chunk_document(text: str, max_words_per_chunk: int = 260) -> List[Dict[str, 
 
         if is_heading_line(stripped):
             # If we already accumulated substantial prose, flush before starting new section
-            if current_words >= 120:
+            if current_words >= 350:
                 _flush()
             current_lines.append(stripped)
             continue

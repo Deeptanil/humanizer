@@ -338,11 +338,11 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
     try {
       const intensity = parseInt(intensitySlider.value, 10) / 100.0;
 
-      // Step 1: Split document into safe ~280-word chunks + get baseline AI risk
+      // Step 1: Split document into safe ~550-word chunks + get baseline AI risk
       const chunkRes = await fetch("/api/chunk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, max_words_per_chunk: 280 })
+        body: JSON.stringify({ text, max_words_per_chunk: 550 })
       });
 
       if (!chunkRes.ok) {
@@ -388,7 +388,9 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
               const data = await res.json();
               chunkResultText = data.cleaned_text || chunkPayloadText;
               totalShifts += (data.changes_count || 0);
-              if (data.model_used) {
+              if (data.quota_exhausted) {
+                lastModelUsed = "offline-linguistic (daily quota reached)";
+              } else if (data.model_used) {
                 lastModelUsed = data.model_used;
               }
               break;
@@ -427,7 +429,7 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
       const inWords = countWords(text);
       const outWords = countWords(finalOutput);
       const retentionPct = inWords > 0 ? Math.round((outWords / inWords) * 100) : 100;
-      outputWordCount.textContent = `${outWords} words (${retentionPct}%)`;
+      outputWordCount.textContent = `${outWords} words`;
 
       // If a .docx was uploaded, immediately reconstruct the in-place Word document (<200ms)
       // and show the DOWNLOAD .DOCX button in the header!

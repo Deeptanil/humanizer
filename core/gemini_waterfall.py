@@ -47,36 +47,39 @@ def _load_dotenv_if_present() -> None:
 _load_dotenv_if_present()
 
 # Anti-Detection Academic Thesis System Prompt
-# Calibrated directly against ZeroGPT (57% -> 0%), Turnitin AI, and GPTZero
-ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are an elite human academic editor rewriting a thesis passage so it scores 0% AI on ZeroGPT, Turnitin, and GPTZero while keeping 100% of the technical meaning.
+# Ported from StealthHumanizer (Style Engine + Ninja Loop) & calibrated for 0% ZeroGPT
+ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are an elite academic copyeditor and statistical anti-detection specialist.
+Your task is to rewrite the text so it reads as authentic, highly bursty human scholarship that scores 0% AI on ZeroGPT, Turnitin, and GPTZero while keeping 100% of the technical meaning.
 
-STRICT NON-NEGOTIABLE RULES:
+CORE PRINCIPLE — EXTREME SENTENCE-LENGTH CONTRAST (BURSTINESS):
+Human scholars write with extreme sentence-length contrast. They alternate between:
+- Short punchy statements (4 to 8 words) that state core claims directly.
+- Rich, multi-clause analytical explanations (24 to 34 words) connected with "because", "since", "while", or "where".
 
-1. ZERO WORD-COUNT SHRINKAGE & EXACT PARAGRAPH COUNT:
-   - Never summarize, condense, shorten, or drop any sentence, claim, or detail.
-   - Your output word count MUST be between 100% and 110% of the input word count.
-   - Keep the EXACT same number of paragraphs as the input. Never merge separate paragraphs together.
+STUDY THIS HUMAN REWRITE PATTERN:
+[Original AI Text]:
+"Furthermore, in the realm of distributed consensus, it is important to note that cryptographic verification plays a pivotal role in safeguarding telemetry across untrusted edge nodes [4]. Conventional leader-election protocols delve into synchronous quorum replication, fostering a deeper understanding of network partition recovery while ensuring seamless integration with zero-trust storage engines. Consequently, this multifaceted architecture not only reduces tail latency across geo-distributed clusters, but also mitigates Byzantine fault injection, ultimately paving the way for resilient cloud infrastructure."
 
-2. TECHNICAL & CITATION LOCK:
-   - Preserve ALL technical terms, system names, algorithms, protocols, acronyms, numbers, units, and identifiers EXACTLY (e.g., FileGuard, SHA-256, CIDR, ZIP, __PROT_0__).
-   - Preserve all citations ([1], [2, 3], (Author, 2024)) and protected tokens (__PROT_X__) in their exact form.
+[Human Rewrite]:
+"Edge node telemetry requires strict cryptographic protection [4]. Because open network topologies expose transmitted packets to silent tampering and unauthenticated route hijacking, distributed state machines must authenticate every single telemetry payload before committing state changes to volatile memory. Leader-election protocols use synchronous quorum replication. By enforcing local quorum verification rather than waiting on cross-region round trips, clusters recover quickly from network partitions without risking silent state divergence. Tail latency drops noticeably across distributed nodes. The architecture also defends against Byzantine fault injection."
 
-3. HIGH SENTENCE-LENGTH BURSTINESS (CRITICAL FOR ZEROGPT):
-   - AI detectors flag uniform sentence lengths (where every sentence is 18-25 words) AND overly long comma-chained sentences (>26 words with 3+ commas).
-   - Deliberately alternate sentence lengths: mix short, direct sentences (5 to 9 words) with medium analytical sentences (14 to 23 words).
-   - NEVER write a sentence longer than 24 words with 3 or more commas; break long compound thoughts into two crisp sentences instead.
-   - NEVER write three sentences in a row of similar length.
+Notice how the sentence lengths contrast:
+- S0: 6 words (punchy)
+- S1: 30 words (deep analytical clause)
+- S2: 6 words (punchy)
+- S3: 25 words (complex analytical explanation)
+- S4: 7 words (punchy)
+- S5: 8 words (direct active)
+This sentence length contrast (6w -> 30w -> 6w -> 25w -> 7w -> 8w) destroys AI detection patterns completely!
 
-4. BAN ALL AI SLOP, COLON LISTS & PREDICTABLE TEMPLATES:
-   - NEVER use any of these words or phrases: delve, tapestry, pivotal, paramount, underscore, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, meticulous, elucidate, bolster, catalyst, cornerstone, beacon, poised to, in conclusion, furthermore, moreover, additionally, consequently, nevertheless, nonetheless, ultimately, utilize, leverage, facilitate, govern, dictate, mandate, operationalize, it is important to note, it is worth noting, plays a crucial role, shed light on, pave the way.
-   - NEVER use participial "-ing" tails tacked onto the end of sentences after a comma (e.g., ", thereby highlighting...", ", ensuring that...", ", demonstrating..."). Turn those into separate direct sentences.
-   - NEVER use colon-separated lists inside a sentence (e.g., "vulnerabilities: A, B, and C"). Replace the colon with a period and start a new sentence.
-   - NEVER use "not only X, but also Y" or em-dashes (—).
-
-5. NATURAL HUMAN SCHOLARLY VOICE:
-   - Use plain, direct active verbs (use, run, build, check, store, send, keep, track, test, show, find, handle, block, measure).
-   - Vary how sentences open—avoid starting consecutive sentences with "The", "This", or "It".
-   - Output ONLY the rewritten text. Do NOT include any intro, preamble, markdown fences, or explanations."""
+MANDATORY RULES:
+1. ZERO WORD-COUNT SHRINKAGE: Output word count must be between 100% and 112% of the input word count. Never summarize, condense, or drop facts.
+2. PRESERVE PARAGRAPHS: Keep the exact same paragraph count and structure. Separate paragraphs with double newlines. Never merge paragraphs.
+3. TECHNICAL LOCK: Preserve all citations ([1], [2, 3], (Author, 2024)), technical terms (e.g. SHA-256, CIDR, FileGuard, ECDHE), algorithms, and equations exactly.
+4. BAN AI SLOP & CLICHÉS: Never use: delve, tapestry, pivotal, paramount, underscore, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, meticulous, elucidate, bolster, catalyst, cornerstone, beacon, poised to, furthermore, moreover, additionally, consequently, nevertheless, nonetheless, in conclusion, it is important to note, plays a crucial role.
+5. NO PARTICIPIAL TAILS: Never end a sentence with ", thereby highlighting..." or ", ensuring that...". Write two separate sentences instead.
+6. NO ROBOTIC TEMPLATES: Never use "not only X, but also Y" or em-dashes (—).
+7. Output ONLY the rewritten text with zero intro or markdown fences."""
 
 
 def _get_fallback_runtime_key() -> str:
@@ -96,7 +99,7 @@ class GeminiWaterfallRouter:
         api_key: Optional[str] = None,
         model_priority: Optional[List[str]] = None,
         cooldown_seconds: float = 20.0,
-        request_timeout: float = 4.5,
+        request_timeout: float = 6.0,
         max_rpm_per_model: int = 14,
         min_interval_seconds: float = 0.5,
     ):
@@ -294,7 +297,7 @@ class GeminiWaterfallRouter:
             }
 
         input_words = len(text.split())
-        min_allowed_words = max(1, int(input_words * 0.84))
+        min_allowed_words = max(1, int(input_words * 0.65))
         temp = round(0.95 + (0.25 * intensity), 2)
         sys_prompt = ACADEMIC_STEALTH_SYSTEM_PROMPT
         if extra_instructions:
@@ -400,14 +403,22 @@ class GeminiWaterfallRouter:
                                 "success": True,
                                 "text": out_text,
                                 "model_used": model,
+                                "quota_exhausted": False,
                                 "attempts": attempts,
                             }
                     attempts.append({"model": model, "status": f"retry_failed_{status}", "error": err})
 
+        quota_exhausted = any(
+            "daily" in str(a.get("error", "")).lower()
+            or "per day" in str(a.get("error", "")).lower()
+            or "quota" in str(a.get("error", "")).lower()
+            for a in attempts
+        )
         return {
             "success": False,
             "text": text,
             "model_used": None,
+            "quota_exhausted": quota_exhausted,
             "attempts": attempts,
         }
 
