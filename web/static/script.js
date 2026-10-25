@@ -26,6 +26,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const metricWatermarks = document.getElementById("metricWatermarks");
   const metricChanges = document.getElementById("metricChanges");
 
+  // SVGs for dynamic buttons
+  const LIGHTNING_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  const COPY_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+  const CHECK_SVG = '<svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
   // Intensity Slider Label
   intensitySlider.addEventListener("input", (e) => {
     const val = parseInt(e.target.value, 10);
@@ -44,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     inputWordCount.textContent = `${countWords(inputText.value)} words`;
   });
 
-  // Realistic Thesis Sample
+  // Realistic Thesis Sample (Zero Emojis)
   const SAMPLE_THESIS = `The rapid advancement of artificial intelligence has revolutionized many industries. However, there are still many challenges that need to be addressed. In this paper, we explore several solutions to improve the accuracy and efficiency of modern systems. Furthermore, our findings indicate that traditional methods are no longer sufficient [1]. Therefore, this study plays a pivotal role in illustrating the need for novel frameworks to foster a deeper understanding of computational scalability.`;
 
   loadSampleBtn.addEventListener("click", () => {
@@ -69,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     humanizeBtn.disabled = true;
-    humanizeBtn.textContent = "⚡ Transforming text...";
+    humanizeBtn.innerHTML = `${LIGHTNING_SVG} TRANSFORMING TEXT...`;
 
     try {
       const intensity = parseInt(intensitySlider.value, 10) / 100.0;
@@ -100,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Error processing text: " + err.message);
     } finally {
       humanizeBtn.disabled = false;
-      humanizeBtn.textContent = "⚡ Humanize Thesis Text";
+      humanizeBtn.innerHTML = `${LIGHTNING_SVG} HUMANIZE THESIS TEXT`;
     }
   });
 
@@ -108,14 +113,14 @@ document.addEventListener("DOMContentLoaded", () => {
   copyBtn.addEventListener("click", () => {
     if (!outputText.value.trim()) return;
     navigator.clipboard.writeText(outputText.value).then(() => {
-      const orig = copyBtn.textContent;
-      copyBtn.textContent = "✅ Copied!";
-      copyBtn.style.backgroundColor = "var(--success)";
-      copyBtn.style.color = "#ffffff";
+      const origHtml = copyBtn.innerHTML;
+      copyBtn.innerHTML = `${CHECK_SVG} COPIED!`;
+      copyBtn.classList.remove("btn-accent");
+      copyBtn.classList.add("btn-primary");
       setTimeout(() => {
-        copyBtn.textContent = orig;
-        copyBtn.style.backgroundColor = "";
-        copyBtn.style.color = "";
+        copyBtn.innerHTML = origHtml;
+        copyBtn.classList.remove("btn-primary");
+        copyBtn.classList.add("btn-accent");
       }, 1800);
     });
   });

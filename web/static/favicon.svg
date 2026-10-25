@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 3D Shadow -->
+  <rect x="10" y="10" width="48" height="48" rx="10" fill="#000000" />
+  <!-- Main Comic Block -->
+  <rect x="6" y="6" width="48" height="48" rx="10" fill="#FFE600" stroke="#000000" stroke-width="4" />
+  <!-- Lightning Bolt Symbol -->
+  <path d="M32 12 L18 34 L29 34 L26 50 L44 26 L33 26 Z" 
+        fill="#FF2E93" 
+        stroke="#000000" 
+        stroke-width="3" 
+        stroke-linejoin="round" />
+</svg>

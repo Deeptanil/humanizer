@@ -4,24 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Turnitout Humanizer — Academic Thesis Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
   <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="theme-dark">
   <div class="app-container">
     <!-- Header -->
     <header class="app-header">
       <div class="logo-area">
-        <div class="logo-badge">🛡️ TURNITOUT</div>
+        <div class="logo-badge">
+          <svg class="svg-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          TURNITOUT
+        </div>
         <div>
           <h1 class="logo-title">Academic Thesis Humanizer</h1>
-          <p class="logo-subtitle">Zero-AI, 100% Deterministic Similarity & Watermark Evader</p>
+          <p class="logo-subtitle">Zero-AI // 100% Deterministic Similarity &amp; Watermark Evader</p>
         </div>
       </div>
       <div class="header-actions">
-        <button id="themeToggleBtn" class="btn-secondary btn-sm" title="Toggle Theme">🌓 Theme</button>
+        <button id="themeToggleBtn" class="btn btn-secondary btn-sm" title="Toggle Theme">
+          <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          THEME
+        </button>
       </div>
     </header>
 
@@ -30,7 +37,7 @@
       <div class="studio-controls">
         <div class="control-group">
           <label for="intensitySlider" class="control-label">
-            Evasion Intensity: <span id="intensityLabel" class="badge-highlight">Balanced (65%)</span>
+            Evasion Intensity: <span id="intensityLabel" class="badge badge-yellow">Balanced (65%)</span>
           </label>
           <div class="slider-wrapper">
             <span class="slider-hint">Subtle</span>
@@ -39,20 +46,29 @@
           </div>
         </div>
         <div class="control-actions">
-          <button id="loadSampleBtn" class="btn-secondary btn-sm">Load Thesis Sample</button>
-          <button id="clearBtn" class="btn-secondary btn-sm">Clear</button>
-          <button id="humanizeBtn" class="btn-primary">⚡ Humanize Thesis Text</button>
+          <button id="loadSampleBtn" class="btn btn-secondary btn-sm">
+            <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            SAMPLE
+          </button>
+          <button id="clearBtn" class="btn btn-secondary btn-sm">
+            <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            CLEAR
+          </button>
+          <button id="humanizeBtn" class="btn btn-primary">
+            <svg class="svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" stroke="currentColor" stroke-width="1.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            HUMANIZE THESIS TEXT
+          </button>
         </div>
       </div>
 
       <!-- Metrics HUD Bar -->
       <div id="metricsBar" class="metrics-bar" style="display: none;">
         <div class="metric-card">
-          <span class="metric-title">Estimated AI Risk</span>
+          <span class="metric-title">AI Detection Risk</span>
           <div class="metric-value-row">
-            <span id="metricAiBefore" class="risk-badge risk-high">90%</span>
-            <span class="metric-arrow">➔</span>
-            <span id="metricAiAfter" class="risk-badge risk-low">25%</span>
+            <span id="metricAiBefore" class="badge badge-pink">90%</span>
+            <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            <span id="metricAiAfter" class="badge badge-lime">25%</span>
           </div>
         </div>
         <div class="metric-card">
@@ -81,10 +97,13 @@
 
         <div class="editor-pane">
           <div class="pane-header">
-            <span>Humanized Result (Citations & Equations Preserved)</span>
+            <span>Humanized Result (Citations &amp; Equations Intact)</span>
             <div class="pane-tools">
               <span id="outputWordCount" class="word-counter">0 words</span>
-              <button id="copyBtn" class="btn-copy btn-sm">📋 Copy Clean Text</button>
+              <button id="copyBtn" class="btn btn-accent btn-sm">
+                <svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                COPY TEXT
+              </button>
             </div>
           </div>
           <textarea id="outputText" readonly placeholder="Humanized text will appear here with zero generative AI footprint..."></textarea>
@@ -94,7 +113,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span>Turnitout Academic Engine v2.6 • 100% Deterministic & Private • Zero Generative AI</span>
+      <span>Turnitout Academic Engine v2.6 // 100% Deterministic &amp; Private // Zero Generative AI</span>
     </footer>
   </div>
 
