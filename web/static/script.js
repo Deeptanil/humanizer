@@ -462,7 +462,14 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
         progressTimer.innerHTML = `${CLOCK_SVG} DONE IN ${totalElapsedStr}`;
       }
       metricChanges.textContent = `${totalShifts} shifts`;
-      progressStatusText.textContent = `COMPLETE // ${totalChunks} CHUNK(S) PROCESSED // ${outWords} WORDS`;
+      if (lastModelUsed.includes("offline")) {
+        progressStatusText.textContent = `COMPLETE (OFFLINE MODE) // FOR DEEP 0% AI EVASION, CLICK "API KEY" ABOVE TO ADD YOUR FREE KEY`;
+        if (apiKeySettingsBtn) {
+          apiKeySettingsBtn.style.animation = "pulse 1.5s infinite";
+        }
+      } else {
+        progressStatusText.textContent = `COMPLETE // ${totalChunks} CHUNK(S) PROCESSED // ${outWords} WORDS`;
+      }
       progressChunkBadge.textContent = "100% DONE";
     } catch (err) {
       stopElapsedTimer();
