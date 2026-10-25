@@ -121,7 +121,8 @@ class HumanizerEngine:
                 orig_text = match.group(0)
                 if "__PROT_" in orig_text:
                     continue
-                formatted_repl = self._preserve_case(orig_text, repl)
+                chosen_repl = self.rng.choice(repl) if isinstance(repl, list) else repl
+                formatted_repl = self._preserve_case(orig_text, chosen_repl)
                 start, end = match.span()
                 text = text[:start] + formatted_repl + text[end:]
                 changes.append({

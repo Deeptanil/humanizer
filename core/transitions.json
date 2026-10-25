@@ -1,27 +1,28 @@
 {
   "addition": {
-    "furthermore": ["moreover", "in addition", "additionally", "alongside this", "further"],
-    "moreover": ["furthermore", "in addition", "additionally", "besides this"],
-    "in addition": ["additionally", "furthermore", "moreover", "as well as this"],
-    "additionally": ["furthermore", "in addition", "moreover", "concurrently"]
+    "furthermore": ["beyond that", "alongside this", "on top of this", "at the same time"],
+    "moreover": ["building on this", "even more importantly", "at the same time", "beyond that"],
+    "in addition": ["alongside this", "beyond that", "in parallel", "on top of that"],
+    "additionally": ["alongside this", "in parallel", "beyond that", "at the same time"]
   },
   "contrast": {
-    "however": ["nevertheless", "nonetheless", "conversely", "on the other hand", "that said"],
-    "nevertheless": ["nonetheless", "however", "even so", "regardless"],
-    "conversely": ["in contrast", "on the contrary", "by comparison", "counter to this"],
-    "on the other hand": ["conversely", "in contrast", "by comparison"]
+    "however": ["even so", "still", "yet in practice", "at the same time", "that said"],
+    "nevertheless": ["even so", "still", "all the same", "despite this"],
+    "nonetheless": ["even so", "all the same", "still", "despite that"],
+    "conversely": ["by contrast", "on the other side", "in contrast", "viewed the other way"],
+    "on the other hand": ["by contrast", "at the same time", "in contrast"]
   },
   "cause_effect": {
-    "therefore": ["consequently", "thus", "hence", "accordingly", "as a result"],
-    "consequently": ["as a result", "therefore", "thus", "accordingly"],
-    "thus": ["hence", "accordingly", "consequently", "thereby"],
-    "as a result": ["consequently", "subsequently", "accordingly", "in consequence"]
+    "therefore": ["for this reason", "because of this", "with that in mind", "as a result"],
+    "consequently": ["because of this", "as a direct result", "for that reason", "in turn"],
+    "thus": ["in doing so", "as a result", "for this reason", "in turn"],
+    "hence": ["for this reason", "from this", "as a result"],
+    "as a result": ["because of this", "in turn", "for that reason"]
   },
   "clarification": {
-    "specifically": ["in particular", "more precisely", "to be specific", "namely"],
-    "in particular": ["specifically", "notably", "especially"],
-    "in other words": ["put differently", "stated another way", "that is to say"],
-    "notably": ["significantly", "remarkably", "importantly", "prominently"]
+    "specifically": ["in particular", "more concretely", "to be specific", "in practice"],
+    "in particular": ["more concretely", "specifically", "especially"],
+    "in other words": ["put differently", "stated plainly", "in practical terms"],
+    "notably": ["importantly", "in particular", "worth noting here is that"]
   }
 }
-

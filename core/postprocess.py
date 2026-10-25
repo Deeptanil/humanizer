@@ -159,23 +159,15 @@ COLLOCATION_RULES: List[Tuple[str, List[str]]] = [
         "the fast-moving growth of",
         "recent progress across",
     ]),
-    (r"\bhas\s+revolutionized\s+many\s+industries\b", [
-        "has reshaped work across dozens of technical fields",
-        "has changed how modern sectors operate",
-    ]),
     (r"\bhas\s+revolutionized\b", [
         "has reshaped",
         "has fundamentally changed",
-    ]),
-    (r"\bthere\s+are\s+still\s+many\s+challenges\s+that\s+need\s+to\s+be\s+addressed\b", [
-        "several hard engineering problems remain open",
-        "a number of practical obstacles still demand attention",
     ]),
     (r"\bneed(?:s)?\s+to\s+be\s+addressed\b", [
         "still must be solved",
         "require direct resolution",
     ]),
-    (r"\bIn\s+this\s+(?:paper|study|work),\s+we\s+explore\b", [
+    (r"\bIn\s+this\s+(?:paper|study|work),\s+we\s+(?:explore|examine|investigate|present|propose)\b", [
         "Here we examine",
         "This work investigates",
     ]),
@@ -331,36 +323,72 @@ def inject_burstiness_and_structure(paragraph: str, intensity: float, rng: rando
                 sent = f"{prefix}{part1.strip()}. Beyond that, {p2_str}{punct}"
             changes += 1
 
-        # 3. Split long uniform compound sentences (> 24 words) at natural clause boundaries
-        # to create a short punchy sentence + longer analytical sentence (high burstiness)
+        # 3. General-purpose participial modifier expansion (e.g. "platform providing X" -> "platform that provides X")
+        part_mod_match = re.search(
+            r"\b(platform|system|framework|architecture|protocol|mechanism|model|algorithm|pipeline|approach|method)\s+(providing|furnishing|enabling|supporting|implementing|delivering|coordinating|maintaining|enforcing)\b",
+            sent,
+            flags=re.IGNORECASE,
+        )
+        if part_mod_match and rng.random() < (0.5 + 0.3 * intensity):
+            noun_w, ing_w = part_mod_match.groups()
+            ing_map = {
+                "providing": "that directly provides",
+                "furnishing": "that directly provides",
+                "enabling": "designed to enable",
+                "supporting": "built to support",
+                "implementing": "that enforces",
+                "delivering": "engineered to deliver",
+                "coordinating": "that coordinates",
+                "maintaining": "that maintains",
+                "enforcing": "that enforces",
+            }
+            rep_phrase = f"{noun_w} {ing_map.get(ing_w.lower(), 'that supports')}"
+            start_i, end_i = part_mod_match.span()
+            sent = sent[:start_i] + rep_phrase + sent[end_i:]
+            changes += 1
+
+        # 4. Unpack colon-list sentences into two sentences (short declarative + list) for high burstiness
         words = sent.split()
-        if len(words) >= 24 and rng.random() < (0.45 + 0.35 * intensity):
-            # Look for ", and ", ", which ", ", while ", ", whereas " in the middle third
+        colon_list_match = re.match(r"^([^:]{18,95}):\s+(.{20,})([.!?])$", sent)
+        if colon_list_match and "," in colon_list_match.group(2):
+            head_clause, list_body, punct = colon_list_match.groups()
+            list_clean = list_body[0].lower() + list_body[1:] if len(list_body) > 1 and list_body[0].isupper() and not list_body[:2].isupper() else list_body
+            sent = f"{head_clause.strip()}. In practice, these include {list_clean}{punct}"
+            changes += 1
+
+        # 5. Break long positive-feature serial lists ("It implements/provides/includes A, B, C, and D")
+        elif (
+            len(words) >= 24
+            and sent.count(",") >= 2
+            and re.match(r"^(?:It|The\s+\w+|This\s+\w+)\s+(?:implements|provides|supports|includes|incorporates|delivers|combines|enforces)\b", sent, re.I)
+            and re.search(r",\s+and\s+(?:a|an|the|[a-z]+-?[a-z]*)\s+", sent)
+        ):
+            parts = re.split(r",\s+and\s+", sent, maxsplit=1)
+            if len(parts) == 2 and len(parts[0].split()) >= 14 and "," in parts[0]:
+                head_items = parts[0].rsplit(",", 1)
+                if len(head_items) == 2 and not head_items[1].strip().startswith("and "):
+                    completed_head = f"{head_items[0]}, and {head_items[1].strip()}"
+                else:
+                    completed_head = parts[0].strip()
+                tail_item = parts[1].strip()
+                sent = f"{completed_head}. Beyond these controls, it also incorporates {tail_item}"
+                changes += 1
+
+        # 6. Split long uniform relative/subordinate clauses (> 22 words) at ', which ' / ', while ' / ', whereas '
+        elif len(words) >= 22 and rng.random() < (0.65 + 0.30 * intensity):
             split_match = re.search(
-                r"^(.{45,}?),\s+(and|which|while|whereas)\s+(.{25,})([.!?])$",
+                r"^(.{35,}?),\s+(which|while|whereas)\s+(.{18,})([.!?])$",
                 sent,
             )
             if split_match:
                 first_clause, conj, second_clause, punct = split_match.groups()
                 conj_lower = conj.lower()
-                if conj_lower == "and":
-                    lead = rng.choice(["At the same time,", "In addition,", "Alongside this,"])
-                elif conj_lower == "which":
+                if conj_lower == "which":
                     lead = rng.choice(["This arrangement", "In practice, this", "That mechanism"])
                 else:
-                    lead = "By contrast,"
+                    lead = "At the same time, this"
                 second_clean = second_clause[0].lower() + second_clause[1:] if len(second_clause) > 1 else second_clause
-                if conj_lower == "which":
-                    sent = f"{first_clause.strip()}. {lead} {second_clean}{punct}"
-                else:
-                    sent = f"{first_clause.strip()}. {lead} {second_clean}{punct}"
-                changes += 1
-
-        # 4. Break list-heavy colon/comma chains into varied cadence when sentence is very long (> 28 words)
-        elif len(words) >= 26 and ", and a " in sent:
-            parts = sent.rsplit(", and a ", 1)
-            if len(parts) == 2 and len(parts[0].split()) >= 15:
-                sent = f"{parts[0].strip()}. The design also incorporates a {parts[1].strip()}"
+                sent = f"{first_clause.strip()}. {lead} {second_clean}{punct}"
                 changes += 1
 
         processed_sentences.append(sent)

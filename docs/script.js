@@ -159,49 +159,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentSimState = "RAW";
   let cachedRawText = paperSheet ? paperSheet.textContent.trim() : SAMPLE_ACADEMIC;
+  let lastCleanedText = "";
 
-  const replacements = [
-    { pattern: /\bIn conclusion,?\b/gi, replace: "To wrap up," },
-    { pattern: /\bit is important to delve into\b/gi, replace: "we look closely at" },
-    { pattern: /\bdelve into\b/gi, replace: "explore" },
-    { pattern: /\bcomprehensive tapestry\b/gi, replace: "broad range" },
-    { pattern: /\bplays a pivotal role in illustrating\b/gi, replace: "clearly shows" },
-    { pattern: /\bplays a pivotal role\b/gi, replace: "is essential" },
-    { pattern: /\bstands as a testament to\b/gi, replace: "reflects" },
-    { pattern: /\bFurthermore, the interplay between\b/gi, replace: "Also, balancing" },
-    { pattern: /\bFurthermore,?\b/gi, replace: "Also," },
-    { pattern: /\bprovides a robust framework\b/gi, replace: "gives a solid basis" },
-    { pattern: /\bMoreover, in today's fast-paced digital era,?\b/gi, replace: "Today," },
-    { pattern: /\bMoreover,?\b/gi, replace: "In addition," },
-    { pattern: /\bserves as a critical milestone\b/gi, replace: "is a major turning point" },
-    { pattern: /\bcannot be overlooked\b/gi, replace: "we must address" },
-    { pattern: /\bdelve deep into the multifaceted dimensions of\b/gi, replace: "examine the details of" },
-    { pattern: /\bUltimately, this paradigm shift\b/gi, replace: "In the end, this shift" }
-  ];
-
-  function resetToRaw(text, initialScore = 96) {
+  async function resetToRaw(text) {
     cachedRawText = text;
+    lastCleanedText = "";
     currentSimState = "RAW";
     if (paperSheet) paperSheet.textContent = text;
-    if (meterFill) {
-      meterFill.style.width = `${initialScore}%`;
-      meterFill.style.backgroundColor = "var(--red-pen)";
-    }
-    if (meterScore) {
-      meterScore.textContent = `${initialScore}%`;
-      meterScore.style.color = "var(--red-pen)";
-    }
     if (statusStamp) statusStamp.style.display = "none";
     if (tutorNote) tutorNote.style.display = "none";
     if (humanizeBtn) humanizeBtn.textContent = "HUMANIZE THIS PAPER →";
+
+    try {
+      const detRes = await fetch("/api/detect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (detRes.ok) {
+        const d = await detRes.json();
+        const score = d.ai_risk ?? (d.metrics && d.metrics.ai_risk) ?? 85;
+        if (meterFill) {
+          meterFill.style.width = `${score}%`;
+          meterFill.style.backgroundColor = "var(--red-pen)";
+        }
+        if (meterScore) {
+          meterScore.textContent = `${score}%`;
+          meterScore.style.color = "var(--red-pen)";
+        }
+        return;
+      }
+    } catch (_) {}
   }
 
   if (sampleAcademicBtn && paperSheet) {
-    sampleAcademicBtn.addEventListener("click", () => resetToRaw(SAMPLE_ACADEMIC, 96));
+    sampleAcademicBtn.addEventListener("click", () => resetToRaw(SAMPLE_ACADEMIC));
   }
 
   if (sampleEssayBtn && paperSheet) {
-    sampleEssayBtn.addEventListener("click", () => resetToRaw(SAMPLE_ESSAY, 98));
+    sampleEssayBtn.addEventListener("click", () => resetToRaw(SAMPLE_ESSAY));
   }
 
   if (paperSheet) {
@@ -211,90 +207,69 @@ document.addEventListener("DOMContentLoaded", () => {
         if (humanizeBtn) humanizeBtn.textContent = "HUMANIZE THIS PAPER →";
         if (statusStamp) statusStamp.style.display = "none";
         if (tutorNote) tutorNote.style.display = "none";
-        if (meterFill) {
-          meterFill.style.width = "94%";
-          meterFill.style.backgroundColor = "var(--red-pen)";
-        }
-        if (meterScore) {
-          meterScore.textContent = "94%";
-          meterScore.style.color = "var(--red-pen)";
-        }
       }
       cachedRawText = paperSheet.textContent.trim();
     });
   }
 
   if (humanizeBtn && paperSheet) {
-    humanizeBtn.addEventListener("click", () => {
+    humanizeBtn.addEventListener("click", async () => {
       if (currentSimState === "RAW") {
         let rawText = cachedRawText || paperSheet.textContent.trim();
         if (!rawText) return;
 
         humanizeBtn.disabled = true;
-        humanizeBtn.textContent = "Marking Up Patterns...";
+        humanizeBtn.textContent = "Humanizing via Engine...";
 
-        let markedHtml = rawText;
-        let matchFound = false;
+        try {
+          const res = await fetch("/api/humanize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: rawText, intensity: 0.85 })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            lastCleanedText = data.cleaned_text || rawText;
+            const beforeRisk = data.metrics_before ? data.metrics_before.ai_risk : 85;
+            const afterRisk = data.metrics_after ? data.metrics_after.ai_risk : 15;
 
-        replacements.forEach(item => {
-          if (item.pattern.test(markedHtml)) {
-            matchFound = true;
-            markedHtml = markedHtml.replace(item.pattern, (match) => {
-              return `<span class="ai-crossed">${match}</span><span class="human-replacement">${item.replace}</span>`;
-            });
-          }
-        });
-
-        if (!matchFound) {
-          const sentences = rawText.split(/(?<=[.?!])\s+/);
-          markedHtml = sentences.map((s, idx) => {
-            if (idx === 0) {
-              return `<span class="human-replacement" style="margin-left:0; margin-right:6px;">In particular,</span> ` + s;
+            let markedHtml = lastCleanedText;
+            if (Array.isArray(data.changes) && data.changes.length > 0) {
+              data.changes.slice(0, 8).forEach(ch => {
+                if (ch.replacement && ch.original && ch.type !== "burstiness_recast") {
+                  const escapedRep = ch.replacement.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                  markedHtml = markedHtml.replace(
+                    new RegExp(escapedRep),
+                    `<span class="ai-crossed">${ch.original}</span><span class="human-replacement">${ch.replacement}</span>`
+                  );
+                }
+              });
             }
-            if (idx % 2 === 1 && s.length > 50) {
-              const words = s.split(" ");
-              if (words.length > 6) {
-                const mid = Math.floor(words.length / 2);
-                return words.slice(0, mid).join(" ") + 
-                  ` <span class="ai-crossed">—</span> <span class="human-replacement">specifically</span> ` + 
-                  words.slice(mid).join(" ");
-              }
+            paperSheet.innerHTML = markedHtml;
+            if (meterFill) {
+              meterFill.style.width = `${afterRisk}%`;
+              meterFill.style.backgroundColor = "#2E7D32";
             }
-            return s;
-          }).join(" ");
-        }
-
-        paperSheet.innerHTML = markedHtml;
-
-        setTimeout(() => {
-          if (meterFill) {
-            meterFill.style.width = "4%";
-            meterFill.style.backgroundColor = "#2E7D32";
+            if (meterScore) {
+              meterScore.textContent = `${afterRisk}%`;
+              meterScore.style.color = "#2E7D32";
+            }
+            if (statusStamp) statusStamp.style.display = "inline-block";
+            if (tutorNote) tutorNote.style.display = "block";
+            humanizeBtn.disabled = false;
+            humanizeBtn.innerHTML = `RESOLVE TO CLEAN TEXT ${CHECK_SVG}`;
+            currentSimState = "MARKED";
+            return;
           }
-          if (meterScore) {
-            meterScore.textContent = "4%";
-            meterScore.style.color = "#2E7D32";
-          }
-          if (statusStamp) statusStamp.style.display = "inline-block";
-          if (tutorNote) tutorNote.style.display = "block";
+        } catch (_) {}
 
-          humanizeBtn.disabled = false;
-          humanizeBtn.innerHTML = `RESOLVE TO CLEAN TEXT ${CHECK_SVG}`;
-          currentSimState = "MARKED";
-        }, 350);
-
+        humanizeBtn.disabled = false;
       } else if (currentSimState === "MARKED") {
-        let cleanText = cachedRawText;
-        replacements.forEach(item => {
-          cleanText = cleanText.replace(item.pattern, item.replace);
-        });
-
-        paperSheet.textContent = cleanText;
+        paperSheet.textContent = lastCleanedText || cachedRawText;
         humanizeBtn.innerHTML = `RESET TO RAW AI SAMPLE ${REFRESH_SVG}`;
         currentSimState = "CLEAN";
-
       } else if (currentSimState === "CLEAN") {
-        resetToRaw(cachedRawText, 96);
+        resetToRaw(cachedRawText);
       }
     });
   }
@@ -302,22 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Copy Clean Text to Clipboard
   if (copyBtn && paperSheet) {
     copyBtn.addEventListener("click", () => {
-      let textToCopy = "";
-      if (currentSimState === "MARKED") {
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = paperSheet.innerHTML;
-        const crossed = tempDiv.querySelectorAll(".ai-crossed");
-        crossed.forEach(el => el.remove());
-        textToCopy = tempDiv.textContent.replace(/\s+/g, " ").trim();
-      } else if (currentSimState === "CLEAN") {
-        textToCopy = paperSheet.textContent.trim();
-      } else {
-        let cleanText = cachedRawText || paperSheet.textContent.trim();
-        replacements.forEach(item => {
-          cleanText = cleanText.replace(item.pattern, item.replace);
-        });
-        textToCopy = cleanText;
-      }
+      let textToCopy = lastCleanedText || paperSheet.textContent.trim();
 
       if (!textToCopy) return;
 
