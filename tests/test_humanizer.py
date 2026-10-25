@@ -347,6 +347,65 @@ def test_docx_drag_drop_in_place_processing():
         assert out_doc.tables[0].rows[1].cells[1].text == "12ms"
 
 
+def test_rate_limiter_and_parallel_model_sharding():
+    """
+    Verify per-model rate limiting prevents burn-out and preferred_model_offset shards parallel workers.
+    """
+    models = ["model-a", "model-b", "model-c"]
+    router = GeminiWaterfallRouter(
+        api_key="test-key",
+        model_priority=models,
+        max_rpm_per_model=2,
+        min_interval_seconds=0.5,
+    )
+    # Record 2 calls on model-a within 60s -> model-a becomes locally rate-limited
+    router.record_model_call("model-a", now=100.0)
+    router.record_model_call("model-a", now=101.0)
+    assert router.is_model_rate_limited("model-a", now=102.0) is True
+    assert router.is_model_rate_limited("model-b", now=102.0) is False
+
+
+def test_rebuild_docx_endpoint_and_seo_geo_routes():
+    """
+    Verify /api/rebuild-docx reconstructs .docx in-place and /robots.txt, /llms.txt, /sitemap.xml work.
+    """
+    import io
+    from docx import Document
+
+    client = app.test_client()
+
+    # Check SEO & GEO routes
+    for route in ("/robots.txt", "/llms.txt", "/sitemap.xml"):
+        res = client.get(route)
+        assert res.status_code == 200
+
+    # Build a test .docx in memory
+    doc = Document()
+    doc.add_paragraph("1. Introduction")
+    doc.add_paragraph("Original draft paragraph one.")
+    tb = doc.add_table(rows=1, cols=2)
+    tb.rows[0].cells[0].text = "Key"
+    tb.rows[0].cells[1].text = "OldVal"
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+
+    humanized_payload = "1. Introduction\n\nHumanized paragraph one with high burstiness.\n\n[Table 1]\n\nKey | NewVal"
+    rebuild_res = client.post(
+        "/api/rebuild-docx",
+        data={
+            "file": (buf, "thesis.docx"),
+            "humanized_text": humanized_payload,
+        },
+        content_type="multipart/form-data",
+    )
+    assert rebuild_res.status_code == 200
+    out_doc = Document(io.BytesIO(rebuild_res.data))
+    assert "Humanized paragraph one" in out_doc.paragraphs[1].text
+    assert out_doc.tables[0].rows[0].cells[1].text == "NewVal"
+
+
 class TestHumanizerSuite(unittest.TestCase):
     def test_1_waterfall(self):
         test_multi_model_priority_waterfall_failover()
@@ -368,6 +427,12 @@ class TestHumanizerSuite(unittest.TestCase):
 
     def test_7_docx(self):
         test_docx_drag_drop_in_place_processing()
+
+    def test_8_rate_limiter_and_sharding(self):
+        test_rate_limiter_and_parallel_model_sharding()
+
+    def test_9_rebuild_docx_and_seo_routes(self):
+        test_rebuild_docx_endpoint_and_seo_geo_routes()
 
 
 if __name__ == "__main__":

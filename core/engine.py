@@ -201,9 +201,10 @@ class HumanizerEngine:
         self,
         paragraph: str,
         intensity: float,
+        preferred_model_offset: int = 0,
     ) -> Tuple[str, List[Dict[str, str]], Optional[str], List[Dict[str, Any]]]:
         """
-        Processes a single non-heading prose paragraph through Layer 1 (Gemini Waterfall),
+        Processes a prose block through Layer 1 (Gemini Waterfall),
         Layer 2 (Deterministic Post-Processor), and Layer 3 (Adversarial Self-Check).
         """
         all_changes: List[Dict[str, str]] = []
@@ -214,14 +215,18 @@ class HumanizerEngine:
 
         # Layer 1: Gemini Multi-Model Priority Waterfall (if API key is configured)
         if self.waterfall.get_api_keys():
-            wf_res = self.waterfall.rewrite_with_waterfall(block, intensity=intensity)
+            wf_res = self.waterfall.rewrite_with_waterfall(
+                block,
+                intensity=intensity,
+                preferred_model_offset=preferred_model_offset,
+            )
             attempts_log.extend(wf_res.get("attempts", []))
             if wf_res.get("success") and wf_res.get("text"):
                 block = wf_res["text"]
                 model_used = wf_res.get("model_used")
                 all_changes.append({
                     "type": "llm_structural_rewrite",
-                    "original": f"Paragraph ({len(paragraph.split())}w)",
+                    "original": f"Chunk ({len(paragraph.split())}w)",
                     "replacement": f"Rewritten via {model_used} ({len(block.split())}w)",
                 })
 
@@ -235,29 +240,40 @@ class HumanizerEngine:
         block, trans_changes = self._rotate_transitions(block, intensity)
         all_changes.extend(trans_changes)
 
-        block, syn_changes = self._apply_synonyms(block, intensity, llm_was_used=(model_used is not None))
-        all_changes.extend(syn_changes)
+        # Only apply dictionary synonym swaps in offline fallback mode;
+        # when Gemini rewrote the text, random thesaurus swaps introduce stiff words that detectors flag.
+        if model_used is None:
+            block, syn_changes = self._apply_synonyms(block, intensity, llm_was_used=False)
+            all_changes.extend(syn_changes)
 
         # Layer 3: Adversarial Self-Check Loop
-        # If Gemini is active and the paragraph's AI risk is still > 32%, run a targeted 2nd pass
+        # If Gemini is active and the chunk's AI risk is still > 18%, run a targeted 2nd pass
         if model_used is not None:
             post_metrics = self.calculate_metrics(block)
-            if post_metrics["ai_risk"] > 32 and len(block.split()) >= 25:
-                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence length"
+            if post_metrics["ai_risk"] > 18 and len(block.split()) >= 25:
+                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence cadence"
                 extra = (
                     f"The previous draft still scored {post_metrics['ai_risk']}% AI risk due to: {flagged}. "
-                    "Insert at least two short 5-7 word declarative sentences, vary sentence openings, "
-                    "and remove all remaining formal transitions while keeping 100% of the facts and length."
+                    "Rewrite using natural human flow: connect ideas with 'because', 'while', 'since', or 'when', "
+                    "use plain everyday verbs (use, run, build, check, keep, show), avoid choppy 7-word staccato "
+                    "sentence lists, and keep 100% of the technical facts, __HEADING_X__ and __PROT_X__ tokens, and word count."
                 )
-                wf_retry = self.waterfall.rewrite_with_waterfall(block, intensity=min(0.95, intensity + 0.15), extra_instructions=extra)
+                wf_retry = self.waterfall.rewrite_with_waterfall(
+                    block,
+                    intensity=min(0.95, intensity + 0.12),
+                    extra_instructions=extra,
+                    preferred_model_offset=preferred_model_offset + 1,
+                )
                 attempts_log.extend(wf_retry.get("attempts", []))
                 if wf_retry.get("success") and wf_retry.get("text"):
                     candidate, cand_changes = deterministic_postprocess(wf_retry["text"], intensity=intensity, rng=self.rng)
-                    cand_metrics = self.calculate_metrics(candidate)
+                    cand, p_ch = self._apply_phrase_rewrites(candidate, intensity)
+                    cand, t_ch = self._rotate_transitions(cand, intensity)
+                    cand_metrics = self.calculate_metrics(cand)
                     if cand_metrics["ai_risk"] <= post_metrics["ai_risk"]:
-                        block = candidate
+                        block = cand
                         model_used = wf_retry.get("model_used") or model_used
-                        all_changes.extend(cand_changes)
+                        all_changes.extend(cand_changes + p_ch + t_ch)
                         all_changes.append({
                             "type": "adversarial_pass_2",
                             "original": f"Risk {post_metrics['ai_risk']}%",
@@ -266,10 +282,16 @@ class HumanizerEngine:
 
         return block, all_changes, model_used, attempts_log
 
-    def process(self, raw_text: str, intensity: float = 0.65) -> Dict[str, Any]:
+    def process(
+        self,
+        raw_text: str,
+        intensity: float = 0.65,
+        preferred_model_offset: int = 0,
+    ) -> Dict[str, Any]:
         """
-        Runs the full 3-layer humanization pipeline across any length of text.
-        Preserves line breaks, headings, citations, and technical terms.
+        Runs the full 3-layer humanization pipeline across a chunk or document.
+        Batches consecutive paragraphs between headings so each chunk uses a single LLM call
+        while preserving 100% of line breaks, headings, citations, and technical terms.
         """
         if not raw_text or not raw_text.strip():
             empty_m = self.calculate_metrics("")
@@ -298,21 +320,39 @@ class HumanizerEngine:
         models_used: List[str] = []
         waterfall_attempts: List[Dict[str, Any]] = []
 
-        # Process line-by-line so headings and paragraph breaks are 100% preserved
+        # Batch consecutive prose lines between headings so each section in a chunk uses
+        # a single LLM call while headings stay 100% locked outside the LLM on their exact lines.
         out_lines: List[str] = []
-        for line in text.split("\n"):
-            stripped = line.strip()
-            if not stripped or is_heading_line(stripped):
-                out_lines.append(line.rstrip())
-                continue
+        prose_buffer: List[str] = []
 
-            rewritten_line, ch, m_used, att = self._process_single_paragraph(stripped, intensity)
+        def _flush_prose_buffer():
+            if not prose_buffer:
+                return
+            combined_prose = "\n".join(prose_buffer)
+            rewritten_prose, ch, m_used, att = self._process_single_paragraph(
+                combined_prose,
+                intensity,
+                preferred_model_offset=preferred_model_offset,
+            )
             all_changes.extend(ch)
             if m_used:
                 models_used.append(m_used)
             waterfall_attempts.extend(att)
-            out_lines.append(rewritten_line)
+            out_lines.append(rewritten_prose.strip())
+            prose_buffer.clear()
 
+        for line in text.split("\n"):
+            stripped = line.strip()
+            if not stripped:
+                _flush_prose_buffer()
+                out_lines.append("")
+            elif is_heading_line(stripped):
+                _flush_prose_buffer()
+                out_lines.append(line.rstrip())
+            else:
+                prose_buffer.append(stripped)
+
+        _flush_prose_buffer()
         final_text = "\n".join(out_lines)
 
         # Restore protected citations and math equations

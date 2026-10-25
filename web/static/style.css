@@ -497,7 +497,9 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
+  min-height: 62px;
+  height: 62px;
+  padding: 10px 18px;
   background-color: var(--bg-surface-elevated);
   border-bottom: var(--border-heavy);
   font-family: var(--font-heading);
@@ -506,6 +508,14 @@ input[type="range"]::-moz-range-thumb {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   gap: 12px;
+}
+
+.pane-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .pane-title {
@@ -517,13 +527,19 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  flex: 1;
 }
 
 .pane-tools {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.progress-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -532,13 +548,14 @@ input[type="range"]::-moz-range-thumb {
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--comic-yellow);
+  white-space: nowrap;
 }
 
 .editor-area-wrapper {
   position: relative;
   display: flex;
   flex: 1;
-  min-height: 400px;
+  min-height: 420px;
 }
 
 .drop-overlay {
@@ -588,6 +605,7 @@ input[type="range"]::-moz-range-thumb {
 
 textarea {
   flex: 1;
+  width: 100%;
   padding: 20px;
   background-color: #060911;
   color: #FFFFFF;
@@ -597,7 +615,7 @@ textarea {
   line-height: 1.8;
   resize: none;
   outline: none;
-  min-height: 400px;
+  min-height: 420px;
 }
 
 textarea::placeholder {
@@ -606,16 +624,339 @@ textarea::placeholder {
   font-size: 0.95rem;
 }
 
-/* Footer */
-.app-footer {
-  margin-top: 28px;
-  text-align: center;
+/* E2E Security Strip */
+.security-banner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background-color: var(--bg-surface-elevated);
+  border: var(--border-heavy);
+  border-radius: var(--radius-comic);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-3d);
+}
+
+.security-banner-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+.security-banner-item strong {
+  color: var(--comic-yellow);
+}
+
+/* SEO / GEO / AI Architecture Cards */
+.seo-section {
+  margin-top: 4px;
+}
+
+.seo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.seo-card {
+  background-color: var(--bg-surface);
+  border: var(--border-heavy);
+  border-radius: var(--radius-comic);
+  padding: 1.15rem 1.35rem;
+  box-shadow: var(--shadow-3d);
+}
+
+.seo-card-title {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--comic-cyan);
+  margin-bottom: 6px;
+}
+
+.seo-card-text {
+  font-size: 0.83rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.seo-card-text strong,
+.seo-card-text code {
+  color: var(--text-light);
+  font-family: var(--font-mono);
+  font-size: 0.79rem;
+}
+
+/* Footer & Legal Links */
+.app-footer {
+  margin-top: 24px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-muted);
   padding-top: 18px;
   border-top: var(--border-heavy);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+}
+
+.footer-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-link-btn {
+  background: none;
+  border: none;
+  color: var(--comic-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 2px 4px;
+}
+
+.footer-link-btn:hover {
+  color: var(--comic-yellow);
+  text-decoration: underline;
+}
+
+.footer-sep {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+/* Legal Document Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(6, 9, 17, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 780px;
+  max-height: 85vh;
+  background-color: var(--bg-surface);
+  border: var(--border-heavy);
+  border-radius: var(--radius-comic);
+  box-shadow: var(--shadow-3d-xl);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background-color: var(--bg-surface-elevated);
+  border-bottom: var(--border-heavy);
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--comic-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-light);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-body h3 {
+  font-family: var(--font-heading);
+  font-size: 0.92rem;
+  color: var(--comic-cyan);
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+.modal-body p,
+.modal-body ul {
+  color: #D5DFEE;
+  font-size: 0.86rem;
+}
+
+.modal-body ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Subtle Bottom-Right Cookie & E2E Notice */
+.cookie-banner {
+  position: fixed;
+  bottom: 18px;
+  right: 18px;
+  max-width: 460px;
+  background-color: var(--bg-surface-elevated);
+  border: var(--border-heavy);
+  border-radius: var(--radius-comic);
+  box-shadow: var(--shadow-3d-lg);
+  padding: 12px 16px;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.cookie-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--text-light);
+}
+
+.cookie-inline-link {
+  background: none;
+  border: none;
+  color: var(--comic-cyan);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cookie-actions {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   ALL-SCREEN RESPONSIVE OPTIMIZATION (320px Mobile -> 1920px+ Ultrawide)
+   ========================================================================== */
+@media (min-width: 1600px) {
+  .app-container {
+    max-width: 1680px;
+    padding: 28px 36px;
+  }
+  .editor-area-wrapper,
+  textarea {
+    min-height: 540px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .security-banner,
+  .seo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .editor-grid {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .editor-area-wrapper,
+  textarea {
+    min-height: 320px;
+  }
+  .footer-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-container {
+    padding: 14px 12px;
+  }
+  .logo-area {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .logo-title {
+    font-size: 1.35rem;
+  }
+  .logo-subtitle {
+    font-size: 0.72rem;
+  }
+  .studio-controls {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .control-group {
+    min-width: 0;
+    width: 100%;
+  }
+  .control-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .control-actions .btn {
+    flex: 1;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+  }
+  .progress-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pane-header {
+    height: auto;
+    min-height: 58px;
+    flex-wrap: wrap;
+    padding: 10px 12px;
+  }
+  .pane-tools {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .cookie-banner {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
 }

@@ -12,6 +12,7 @@ from .detector import split_sentences
 HEADING_REGEX = re.compile(
     r"^(?:"
     r"#{1,6}\s+.+|"                                  # Markdown headings
+    r"\[Table\s+\d+\]|"                              # Table markers
     r"(?:chapter|section|part|appendix)\s+[0-9ivxlcdm]+.*|"  # Chapter/Section headers
     r"\d+(?:\.\d+)*\.?\s+[A-Z0-9][^.!?]{1,85}|"      # Numbered headings: "1. Abstract & Problem Statement"
     r"(?:abstract|introduction|literature\s+review|methodology|methods|results|discussion|conclusion|references|bibliography|acknowledgements)"
@@ -25,11 +26,18 @@ def is_heading_line(line: str) -> bool:
     stripped = line.strip()
     if not stripped:
         return False
+    # Table rows with pipe delimiters or bullet points are prose/data, not section headings
+    if "|" in stripped or stripped.startswith(("-", "*", "•")):
+        return False
+    if stripped.endswith((".", "!", "?", ";", ":", ",")):
+        return False
+    words = stripped.split()
+    if len(words) > 12:
+        return False
     if HEADING_REGEX.match(stripped):
         return True
-    words = stripped.split()
-    # Short title-like line without ending period (e.g., "Architectural Overview & Specs")
-    if len(words) <= 9 and not stripped.endswith((".", "!", "?", ";")) and stripped[0].isupper():
+    # Short title-like line without ending punctuation (e.g., "Architectural Overview & Specs")
+    if len(words) <= 8 and stripped[0].isupper():
         return True
     return False
 
