@@ -14,7 +14,7 @@ import random
 from typing import Dict, List, Tuple, Any, Optional
 
 from .cleaner import WatermarkSanitizer, TokenProtector
-from .detector import analyze_ai_Footprint
+from .detector import analyze_ai_Footprint, split_sentences
 from .postprocess import deterministic_postprocess
 from .chunker import chunk_document, is_heading_line
 from .gemini_waterfall import GeminiWaterfallRouter
@@ -202,6 +202,7 @@ class HumanizerEngine:
         paragraph: str,
         intensity: float,
         preferred_model_offset: int = 0,
+        extra_instructions: str = "",
     ) -> Tuple[str, List[Dict[str, str]], Optional[str], List[Dict[str, Any]]]:
         """
         Processes a prose block through Layer 1 (Gemini Waterfall),
@@ -218,6 +219,7 @@ class HumanizerEngine:
             wf_res = self.waterfall.rewrite_with_waterfall(
                 block,
                 intensity=intensity,
+                extra_instructions=extra_instructions,
                 preferred_model_offset=preferred_model_offset,
             )
             attempts_log.extend(wf_res.get("attempts", []))
@@ -231,49 +233,63 @@ class HumanizerEngine:
                 })
 
         # Layer 2: Deterministic Post-Processor (StealthHumanizer + Moonlit-Pages)
-        block, det_changes = deterministic_postprocess(block, intensity=intensity, rng=self.rng)
+        block, det_changes = deterministic_postprocess(
+            block,
+            intensity=intensity,
+            rng=self.rng,
+            llm_was_used=(model_used is not None),
+        )
         all_changes.extend(det_changes)
 
-        block, phrase_changes = self._apply_phrase_rewrites(block, intensity)
-        all_changes.extend(phrase_changes)
-
-        block, trans_changes = self._rotate_transitions(block, intensity)
-        all_changes.extend(trans_changes)
-
-        # Only apply dictionary synonym swaps in offline fallback mode;
-        # when Gemini rewrote the text, random thesaurus swaps introduce stiff words that detectors flag.
+        # Only run regex phrase/transition/synonym fallbacks when offline (no LLM used);
+        # when Gemini rewrote the text, canned transition rotations and dictionary synonyms
+        # introduce repetitive phrases that AI detectors flag.
         if model_used is None:
+            block, phrase_changes = self._apply_phrase_rewrites(block, intensity)
+            all_changes.extend(phrase_changes)
+
+            block, trans_changes = self._rotate_transitions(block, intensity)
+            all_changes.extend(trans_changes)
+
             block, syn_changes = self._apply_synonyms(block, intensity, llm_was_used=False)
             all_changes.extend(syn_changes)
 
+            # Re-run deterministic structural cleanup after fallback swaps
+            block, det2_changes = deterministic_postprocess(block, intensity=intensity, rng=self.rng, llm_was_used=False)
+            all_changes.extend(det2_changes)
+
         # Layer 3: Adversarial Self-Check Loop
-        # If Gemini is active and the chunk's AI risk is still > 18%, run a targeted 2nd pass
+        # If Gemini is active and the chunk's AI risk is still > 12%, run a targeted 2nd pass
         if model_used is not None:
             post_metrics = self.calculate_metrics(block)
-            if post_metrics["ai_risk"] > 18 and len(block.split()) >= 25:
-                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence cadence"
-                extra = (
+            if post_metrics["ai_risk"] > 12 and len(block.split()) >= 20:
+                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence length"
+                retry_extra = (
                     f"The previous draft still scored {post_metrics['ai_risk']}% AI risk due to: {flagged}. "
-                    "Rewrite using natural human flow: connect ideas with 'because', 'while', 'since', or 'when', "
-                    "use plain everyday verbs (use, run, build, check, keep, show), avoid choppy 7-word staccato "
-                    "sentence lists, and keep 100% of the technical facts, __HEADING_X__ and __PROT_X__ tokens, and word count."
+                    "Mix short 5-8 word sentences with medium 14-22 word sentences, avoid any sentence >24 words "
+                    "with 3+ commas, use plain concrete verbs, and keep all [P0]/[P1] paragraph tags and __PROT_X__ tokens."
                 )
+                if extra_instructions:
+                    retry_extra = extra_instructions + "\n" + retry_extra
                 wf_retry = self.waterfall.rewrite_with_waterfall(
                     block,
                     intensity=min(0.95, intensity + 0.12),
-                    extra_instructions=extra,
+                    extra_instructions=retry_extra,
                     preferred_model_offset=preferred_model_offset + 1,
                 )
                 attempts_log.extend(wf_retry.get("attempts", []))
                 if wf_retry.get("success") and wf_retry.get("text"):
-                    candidate, cand_changes = deterministic_postprocess(wf_retry["text"], intensity=intensity, rng=self.rng)
-                    cand, p_ch = self._apply_phrase_rewrites(candidate, intensity)
-                    cand, t_ch = self._rotate_transitions(cand, intensity)
-                    cand_metrics = self.calculate_metrics(cand)
+                    candidate, cand_changes = deterministic_postprocess(
+                        wf_retry["text"],
+                        intensity=intensity,
+                        rng=self.rng,
+                        llm_was_used=True,
+                    )
+                    cand_metrics = self.calculate_metrics(candidate)
                     if cand_metrics["ai_risk"] <= post_metrics["ai_risk"]:
-                        block = cand
+                        block = candidate
                         model_used = wf_retry.get("model_used") or model_used
-                        all_changes.extend(cand_changes + p_ch + t_ch)
+                        all_changes.extend(cand_changes)
                         all_changes.append({
                             "type": "adversarial_pass_2",
                             "original": f"Risk {post_metrics['ai_risk']}%",
@@ -281,6 +297,67 @@ class HumanizerEngine:
                         })
 
         return block, all_changes, model_used, attempts_log
+
+    @staticmethod
+    def _unpack_batched_paragraphs(rewritten_text: str, orig_paras: List[str]) -> List[str]:
+        """
+        Unpacks a batched `[P0] ... [P1] ...` LLM response back into the exact `len(orig_paras)`
+        paragraphs so 1-to-1 paragraph alignment with .docx files is 100% preserved.
+        """
+        n = len(orig_paras)
+        if n <= 1:
+            clean_single = re.sub(r"^\s*\[P\d+\]\s*", "", rewritten_text.strip(), flags=re.I)
+            return [re.sub(r"\s+", " ", clean_single).strip()]
+
+        # Try splitting by [P0], [P1], ... markers first
+        tag_pattern = re.compile(r"\[P(\d+)\]", re.IGNORECASE)
+        matches = list(tag_pattern.finditer(rewritten_text))
+        if len(matches) == n:
+            extracted: List[str] = []
+            for idx, m in enumerate(matches):
+                start = m.end()
+                end = matches[idx + 1].start() if idx + 1 < len(matches) else len(rewritten_text)
+                seg = re.sub(r"\s+", " ", rewritten_text[start:end]).strip()
+                extracted.append(seg if seg else orig_paras[idx])
+            return extracted
+
+        # Fallback 1: Strip any leftover [Pk] tags and check if paragraph lines match n
+        cleaned = tag_pattern.sub("", rewritten_text).strip()
+        non_empty_lines = [re.sub(r"\s+", " ", l).strip() for l in cleaned.split("\n") if l.strip()]
+        if len(non_empty_lines) == n:
+            return non_empty_lines
+
+        # Fallback 2: Distribute sentences proportionally across the n paragraphs by original word weights
+        all_sents = split_sentences(re.sub(r"\s+", " ", cleaned))
+        if len(all_sents) >= n:
+            orig_weights = [max(1, len(p.split())) for p in orig_paras]
+            total_orig_w = sum(orig_weights)
+            total_new_w = max(1, sum(len(s.split()) for s in all_sents))
+            result_paras: List[str] = []
+            s_idx = 0
+            for p_i in range(n):
+                if p_i == n - 1:
+                    rem = " ".join(all_sents[s_idx:]).strip()
+                    result_paras.append(rem if rem else all_sents[-1])
+                    break
+                target_w = (orig_weights[p_i] / total_orig_w) * total_new_w
+                curr_sents = []
+                curr_w = 0
+                # Ensure at least 1 sentence remains for each remaining paragraph slot
+                max_s_idx = len(all_sents) - (n - 1 - p_i)
+                while s_idx < max_s_idx and (not curr_sents or curr_w < target_w * 0.85):
+                    curr_sents.append(all_sents[s_idx])
+                    curr_w += len(all_sents[s_idx].split())
+                    s_idx += 1
+                result_paras.append(" ".join(curr_sents).strip())
+            return result_paras
+
+        # Fallback 3: Pad or join non_empty_lines
+        if len(non_empty_lines) > n:
+            head = non_empty_lines[: n - 1]
+            tail = " ".join(non_empty_lines[n - 1 :])
+            return head + [tail]
+        return non_empty_lines + orig_paras[len(non_empty_lines) :]
 
     def process(
         self,
@@ -290,8 +367,9 @@ class HumanizerEngine:
     ) -> Dict[str, Any]:
         """
         Runs the full 3-layer humanization pipeline across a chunk or document.
-        Batches consecutive paragraphs between headings so each chunk uses a single LLM call
-        while preserving 100% of line breaks, headings, citations, and technical terms.
+        Batches ALL prose paragraphs in the chunk (even across blank lines in .docx extractions)
+        into a single LLM request using [P0]..[PN] markers, then restores each paragraph to its
+        exact original line slot so headings, blank lines, and .docx paragraph counts are 100% locked.
         """
         if not raw_text or not raw_text.strip():
             empty_m = self.calculate_metrics("")
@@ -320,39 +398,62 @@ class HumanizerEngine:
         models_used: List[str] = []
         waterfall_attempts: List[Dict[str, Any]] = []
 
-        # Batch consecutive prose lines between headings so each section in a chunk uses
-        # a single LLM call while headings stay 100% locked outside the LLM on their exact lines.
-        out_lines: List[str] = []
-        prose_buffer: List[str] = []
+        raw_lines = text.split("\n")
+        out_lines: List[str] = list(raw_lines)
+        prose_indices: List[int] = []
+        prose_paras: List[str] = []
 
-        def _flush_prose_buffer():
-            if not prose_buffer:
-                return
-            combined_prose = "\n".join(prose_buffer)
-            rewritten_prose, ch, m_used, att = self._process_single_paragraph(
-                combined_prose,
-                intensity,
-                preferred_model_offset=preferred_model_offset,
-            )
-            all_changes.extend(ch)
-            if m_used:
-                models_used.append(m_used)
-            waterfall_attempts.extend(att)
-            out_lines.append(rewritten_prose.strip())
-            prose_buffer.clear()
-
-        for line in text.split("\n"):
+        for idx, line in enumerate(raw_lines):
             stripped = line.strip()
             if not stripped:
-                _flush_prose_buffer()
-                out_lines.append("")
+                out_lines[idx] = ""
             elif is_heading_line(stripped):
-                _flush_prose_buffer()
-                out_lines.append(line.rstrip())
+                out_lines[idx] = line.rstrip()
             else:
-                prose_buffer.append(stripped)
+                prose_indices.append(idx)
+                prose_paras.append(stripped)
 
-        _flush_prose_buffer()
+        if prose_paras:
+            if len(prose_paras) == 1:
+                rw_text, ch, m_used, att = self._process_single_paragraph(
+                    prose_paras[0],
+                    intensity,
+                    preferred_model_offset=preferred_model_offset,
+                )
+                all_changes.extend(ch)
+                if m_used:
+                    models_used.append(m_used)
+                waterfall_attempts.extend(att)
+                out_lines[prose_indices[0]] = re.sub(r"\s+", " ", rw_text).strip()
+            else:
+                tagged_input = "\n\n".join(f"[P{i}] {p}" for i, p in enumerate(prose_paras))
+                batch_instruction = (
+                    f"The input contains {len(prose_paras)} paragraphs labeled [P0] through [P{len(prose_paras) - 1}]. "
+                    f"You MUST keep every [P0], [P1], ... [P{len(prose_paras) - 1}] marker at the start of its corresponding "
+                    "rewritten paragraph so the exact paragraph count is preserved."
+                )
+                rw_batch, ch, m_used, att = self._process_single_paragraph(
+                    tagged_input,
+                    intensity,
+                    preferred_model_offset=preferred_model_offset,
+                    extra_instructions=batch_instruction,
+                )
+                all_changes.extend(ch)
+                if m_used:
+                    models_used.append(m_used)
+                waterfall_attempts.extend(att)
+
+                unpacked = self._unpack_batched_paragraphs(rw_batch, prose_paras)
+                for slot_idx, para_text in zip(prose_indices, unpacked):
+                    # Run final line-level postprocess check after unpacking
+                    clean_p, _ = deterministic_postprocess(
+                        para_text,
+                        intensity=intensity,
+                        rng=self.rng,
+                        llm_was_used=(m_used is not None),
+                    )
+                    out_lines[slot_idx] = re.sub(r"\s+", " ", clean_p).strip()
+
         final_text = "\n".join(out_lines)
 
         # Restore protected citations and math equations

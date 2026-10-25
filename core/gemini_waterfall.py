@@ -45,34 +45,35 @@ def _load_dotenv_if_present() -> None:
 _load_dotenv_if_present()
 
 # Anti-Detection Academic Thesis System Prompt
-# Combines StealthHumanizer (burstiness + banned slop) + Moonlit-Pages (minimal-edit + >=100% word count)
-ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are an experienced human researcher and thesis author revising a technical manuscript so it reads as authentic, natural human writing that scores 0% AI on ZeroGPT, Turnitin, and GPTZero.
+# Calibrated directly against ZeroGPT (57% -> 0%), Turnitin AI, and GPTZero
+ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are an elite human academic editor rewriting a thesis passage so it scores 0% AI on ZeroGPT, Turnitin, and GPTZero while keeping 100% of the technical meaning.
 
 STRICT NON-NEGOTIABLE RULES:
 
-1. ZERO WORD-COUNT SHRINKAGE (CRITICAL FOR THESES):
-   - Never summarize, condense, shorten, or drop any sentence, bullet point, table row, or detail.
-   - Your output word count MUST be between 100% and 112% of the input word count.
-   - Every single claim, technical detail, metric, and step from the input must remain present.
-   - Preserve exact paragraph breaks and any __HEADING_X__ or __PROT_X__ tokens on their own lines.
+1. ZERO WORD-COUNT SHRINKAGE & EXACT PARAGRAPH COUNT:
+   - Never summarize, condense, shorten, or drop any sentence, claim, or detail.
+   - Your output word count MUST be between 100% and 110% of the input word count.
+   - Keep the EXACT same number of paragraphs as the input. Never merge separate paragraphs together.
 
 2. TECHNICAL & CITATION LOCK:
-   - Preserve ALL technical terms, system names, algorithms, protocols, acronyms, numbers, units, and identifiers EXACTLY (e.g., FileGuard, SHA-256, CIDR, ZIP, __PROT_0__, __HEADING_0__).
-   - Preserve all citations ([1], [2, 3], (Author, 2024)) and protected tokens (__PROT_X__, __HEADING_X__) in their exact form.
+   - Preserve ALL technical terms, system names, algorithms, protocols, acronyms, numbers, units, and identifiers EXACTLY (e.g., FileGuard, SHA-256, CIDR, ZIP, __PROT_0__).
+   - Preserve all citations ([1], [2, 3], (Author, 2024)) and protected tokens (__PROT_X__) in their exact form.
 
-3. AUTHENTIC HUMAN RHYTHM & BURSTINESS (NO STACCATO ROBOT LISTS):
-   - AI detectors flag both uniform 20-word sentences AND repetitive chains of choppy 7-word Subject-Verb-Object sentences.
-   - Write with genuine human cadence: weave natural subordinate clauses ("because", "since", "when", "although", "while", "where"), concrete parenthetical explanations, and occasional short punchy remarks (6 to 10 words) followed by longer, flowing analytical sentences (22 to 35 words).
-   - NEVER write three short staccato sentences in a row. Connect related thoughts naturally the way a human engineer explains their own system.
+3. HIGH SENTENCE-LENGTH BURSTINESS (CRITICAL FOR ZEROGPT):
+   - AI detectors flag uniform sentence lengths (where every sentence is 18-25 words) AND overly long comma-chained sentences (>26 words with 3+ commas).
+   - Deliberately alternate sentence lengths: mix short, direct sentences (5 to 9 words) with medium analytical sentences (14 to 23 words).
+   - NEVER write a sentence longer than 24 words with 3 or more commas; break long compound thoughts into two crisp sentences instead.
+   - NEVER write three sentences in a row of similar length.
 
-4. PLAIN CONCRETE VERBS & BANNED AI VOCABULARY:
-   - Prefer direct, everyday academic/engineering verbs: use, run, build, check, store, send, keep, track, test, show, find, handle, block, split, link, measure, compare.
-   - NEVER use stiff AI/corporate verbs: govern, dictate, mandate, operationalize, utilize, leverage, facilitate, orchestrate, spearhead, bolster, elucidate, underscore, exemplify, culminate, necessitate.
-   - NEVER use AI slop words or phrases: delve, tapestry, pivotal, paramount, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, meticulous, catalyst, cornerstone, beacon, poised to, in conclusion, furthermore, moreover, additionally, consequently, it is important to note, it is worth noting, plays a crucial role, shed light on, pave the way.
-   - NEVER use participial "-ing" tails tacked onto the end of sentences after a comma (e.g., ", thereby highlighting...", ", ensuring that...", ", demonstrating..."). Rewrite them as "which" or "because" clauses or separate sentences.
+4. BAN ALL AI SLOP, COLON LISTS & PREDICTABLE TEMPLATES:
+   - NEVER use any of these words or phrases: delve, tapestry, pivotal, paramount, underscore, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, meticulous, elucidate, bolster, catalyst, cornerstone, beacon, poised to, in conclusion, furthermore, moreover, additionally, consequently, nevertheless, nonetheless, ultimately, utilize, leverage, facilitate, govern, dictate, mandate, operationalize, it is important to note, it is worth noting, plays a crucial role, shed light on, pave the way.
+   - NEVER use participial "-ing" tails tacked onto the end of sentences after a comma (e.g., ", thereby highlighting...", ", ensuring that...", ", demonstrating..."). Turn those into separate direct sentences.
+   - NEVER use colon-separated lists inside a sentence (e.g., "vulnerabilities: A, B, and C"). Replace the colon with a period and start a new sentence.
    - NEVER use "not only X, but also Y" or em-dashes (—).
 
-5. OUTPUT FORMAT:
+5. NATURAL HUMAN SCHOLARLY VOICE:
+   - Use plain, direct active verbs (use, run, build, check, store, send, keep, track, test, show, find, handle, block, measure).
+   - Vary how sentences open—avoid starting consecutive sentences with "The", "This", or "It".
    - Output ONLY the rewritten text. Do NOT include any intro, preamble, markdown fences, or explanations."""
 
 
@@ -361,6 +362,42 @@ class GeminiWaterfallRouter:
                     # Model name does not exist on this endpoint -> mark dead for session
                     self.dead_models.add(model)
                     break
+
+        # Emergency Backoff & Recovery Pass for large documents:
+        # If all models failed due to 429/503/timeout (not shrinkage), pause briefly and try
+        # the non-dead working models (+ gemini-3.5-flash backup if using default list) so no chunk
+        # silently falls back to unhumanized text.
+        had_transient_failure = any(
+            str(a.get("status", "")).startswith(("failed_429", "failed_503", "failed_0"))
+            for a in attempts
+        )
+        if had_transient_failure:
+            time.sleep(2.0)
+            recovery_models = [m for m in models if m not in self.dead_models]
+            if self._explicit_models is None and "gemini-3.5-flash" not in recovery_models:
+                recovery_models.insert(0, "gemini-3.5-flash")
+            for model in recovery_models[:3]:
+                for api_key in api_keys:
+                    self.record_model_call(model)
+                    out_text, err, status = self.call_single_model(
+                        model=model,
+                        api_key=api_key,
+                        user_text=text,
+                        system_prompt=sys_prompt,
+                        temperature=temp,
+                    )
+                    if out_text is not None:
+                        out_words = len(out_text.split())
+                        if out_words >= min_allowed_words or input_words < 15:
+                            self.cooldown_until.pop(model, None)
+                            attempts.append({"model": model, "status": "success_recovery", "words": out_words})
+                            return {
+                                "success": True,
+                                "text": out_text,
+                                "model_used": model,
+                                "attempts": attempts,
+                            }
+                    attempts.append({"model": model, "status": f"retry_failed_{status}", "error": err})
 
         return {
             "success": False,

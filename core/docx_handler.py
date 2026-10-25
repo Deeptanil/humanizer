@@ -77,20 +77,15 @@ class DocxProcessor:
                 for p, new_line in zip(non_empty_paras, body_lines):
                     _set_paragraph_text_preserve_style(p, new_line)
                     updated_paragraphs += 1
-            elif len(body_lines) < len(non_empty_paras):
-                # Map available lines in order, leaving any trailing structural paragraphs intact
-                for idx, new_line in enumerate(body_lines):
-                    _set_paragraph_text_preserve_style(non_empty_paras[idx], new_line)
-                    updated_paragraphs += 1
             else:
-                # More lines in humanized_text than non_empty_paras: assign 1-to-1 up to last paragraph,
-                # and join remaining lines into the final paragraph so zero words are ever dropped.
-                for idx in range(len(non_empty_paras) - 1):
-                    _set_paragraph_text_preserve_style(non_empty_paras[idx], body_lines[idx])
+                orig_texts = [re.sub(r"\s+", " ", p.text).strip() for p in non_empty_paras]
+                aligned_lines = HumanizerEngine._unpack_batched_paragraphs(
+                    "\n".join(body_lines),
+                    orig_texts,
+                )
+                for p, new_line in zip(non_empty_paras, aligned_lines):
+                    _set_paragraph_text_preserve_style(p, new_line)
                     updated_paragraphs += 1
-                tail_joined = " ".join(body_lines[len(non_empty_paras) - 1 :])
-                _set_paragraph_text_preserve_style(non_empty_paras[-1], tail_joined)
-                updated_paragraphs += 1
 
         # Map any [Table N] blocks back into doc.tables in-place
         updated_tables = 0

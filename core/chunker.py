@@ -22,12 +22,15 @@ HEADING_REGEX = re.compile(
 
 
 def is_heading_line(line: str) -> bool:
-    """Determines whether a line is a section/chapter heading that must remain untouched."""
+    """Determines whether a line is a section/chapter heading or short data row that must remain untouched."""
     stripped = line.strip()
     if not stripped:
         return False
-    # Table rows with pipe delimiters or bullet points are prose/data, not section headings
-    if "|" in stripped or stripped.startswith(("-", "*", "•")):
+    # Short pipe-delimited table rows (e.g. "Metric | Value", "Latency | 12ms") are locked;
+    # long prose table rows (>14 words) are humanized.
+    if "|" in stripped:
+        return len(stripped.split()) <= 14
+    if stripped.startswith(("-", "*", "•")):
         return False
     if stripped.endswith((".", "!", "?", ";", ":", ",")):
         return False
