@@ -12,6 +12,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const outputWordCount = document.getElementById("outputWordCount");
   const activeModelBadge = document.getElementById("activeModelBadge");
 
+  // Drag & Drop Document Elements
+  const inputPane = document.getElementById("inputPane");
+  const dropOverlay = document.getElementById("dropOverlay");
+  const docBadge = document.getElementById("docBadge");
+  const docBadgeName = document.getElementById("docBadgeName");
+  const downloadDocxBtn = document.getElementById("downloadDocxBtn");
+
+  let activeDocxFile = null;
+  let activeDocxDownloadUrl = null;
+
   // Progress HUD
   const progressContainer = document.getElementById("progressContainer");
   const progressStatusText = document.getElementById("progressStatusText");
@@ -82,6 +92,97 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
     outputWordCount.textContent = "0 words";
     metricsBar.style.display = "none";
     progressContainer.style.display = "none";
+    activeDocxFile = null;
+    docBadge.style.display = "none";
+    downloadDocxBtn.style.display = "none";
+    if (activeDocxDownloadUrl) {
+      URL.revokeObjectURL(activeDocxDownloadUrl);
+      activeDocxDownloadUrl = null;
+    }
+  });
+
+  // ==========================================================================
+  // DRAG & DROP DOCUMENT INGESTION (.DOCX, .TXT, .MD)
+  // ==========================================================================
+  let dragCounter = 0;
+
+  inputPane.addEventListener("dragenter", (e) => {
+    e.preventDefault();
+    dragCounter++;
+    // Only show drop overlay when text field is empty
+    if (!inputText.value.trim()) {
+      dropOverlay.style.display = "flex";
+    }
+  });
+
+  inputPane.addEventListener("dragover", (e) => {
+    e.preventDefault();
+  });
+
+  inputPane.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      dropOverlay.style.display = "none";
+    }
+  });
+
+  inputPane.addEventListener("drop", async (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    dropOverlay.style.display = "none";
+
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    const name = file.name.toLowerCase();
+
+    if (name.endsWith(".pdf")) {
+      alert("PDF documents have rigid, pre-compiled absolute layouts that break when text lengths change. Please drop your editable Word document (.docx) or plain text (.txt / .md) to keep all tables, columns, and styling intact.");
+      return;
+    }
+
+    if (name.endsWith(".docx")) {
+      activeDocxFile = file;
+      docBadgeName.textContent = file.name;
+      docBadge.style.display = "inline-flex";
+      downloadDocxBtn.style.display = "none";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("/api/extract-docx", {
+          method: "POST",
+          body: formData
+        });
+        if (!res.ok) {
+          throw new Error(`Server returned ${res.status}`);
+        }
+        const data = await res.json();
+        inputText.value = data.text;
+        inputWordCount.textContent = `${countWords(data.text)} words`;
+      } catch (err) {
+        alert("Error reading .docx file: " + err.message);
+      }
+      return;
+    }
+
+    if (name.endsWith(".txt") || name.endsWith(".md")) {
+      activeDocxFile = null;
+      docBadge.style.display = "none";
+      downloadDocxBtn.style.display = "none";
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        inputText.value = event.target.result;
+        inputWordCount.textContent = `${countWords(inputText.value)} words`;
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    alert("Unsupported file format. Please drop a Word document (.docx) or plain text (.txt / .md).");
   });
 
   // Multi-Chunk 10,000+ Word Streaming Humanizer
@@ -195,6 +296,33 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
       metricChanges.textContent = `${totalShifts} shifts`;
       progressStatusText.textContent = `COMPLETE // ${totalChunks} CHUNK(S) PROCESSED // ${outWords} WORDS`;
       progressChunkBadge.textContent = "100% DONE";
+
+      // If a .docx was dropped, generate the in-place humanized Word document
+      if (activeDocxFile) {
+        try {
+          const docxForm = new FormData();
+          docxForm.append("file", activeDocxFile);
+          docxForm.append("intensity", intensity);
+          const docxRes = await fetch("/api/upload-docx", {
+            method: "POST",
+            body: docxForm
+          });
+          if (docxRes.ok) {
+            const blob = await docxRes.blob();
+            if (activeDocxDownloadUrl) URL.revokeObjectURL(activeDocxDownloadUrl);
+            activeDocxDownloadUrl = URL.createObjectURL(blob);
+            downloadDocxBtn.onclick = () => {
+              const a = document.createElement("a");
+              a.href = activeDocxDownloadUrl;
+              a.download = `Humanized_${activeDocxFile.name}`;
+              document.body.appendChild(a);
+              a.click();
+              a.remove();
+            };
+            downloadDocxBtn.style.display = "inline-flex";
+          }
+        } catch (_) {}
+      }
     } catch (err) {
       alert("Error processing text: " + err.message);
       progressContainer.style.display = "none";

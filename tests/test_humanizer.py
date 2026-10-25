@@ -301,6 +301,52 @@ def test_flask_api_endpoints_and_zero_emojis():
     assert "ai_risk" in det_data["metrics"]
 
 
+def test_docx_drag_drop_in_place_processing():
+    """
+    Verify that DocxProcessor extracts text and preserves Word document tables in-place.
+    """
+    import io
+    import tempfile
+    from docx import Document
+    from core.docx_handler import DocxProcessor
+
+    # Create an in-memory test document with paragraphs and a table
+    doc = Document()
+    doc.add_heading("1. Experimental Setup", level=1)
+    doc.add_paragraph("Furthermore, this study plays a pivotal role in illustrating distributed systems.")
+
+    table = doc.add_table(rows=2, cols=2)
+    table.rows[0].cells[0].text = "Metric"
+    table.rows[0].cells[1].text = "Value"
+    table.rows[1].cells[0].text = "Latency"
+    table.rows[1].cells[1].text = "12ms"
+
+    engine = HumanizerEngine()
+    proc = DocxProcessor(engine)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        in_path = f"{tmpdir}/sample.docx"
+        out_path = f"{tmpdir}/sample_out.docx"
+        doc.save(in_path)
+
+        # 1. Test extraction for frontend display
+        extracted = proc.extract_text(in_path)
+        assert "1. Experimental Setup" in extracted["text"]
+        assert "Metric | Value" in extracted["text"]
+        assert extracted["tables"] == 1
+
+        # 2. Test in-place processing
+        res = proc.process_file(in_path, out_path, intensity=0.85)
+        assert res["total_paragraphs"] >= 1
+
+        # 3. Verify output document preserves table structure
+        out_doc = Document(out_path)
+        assert len(out_doc.tables) == 1
+        assert len(out_doc.tables[0].rows) == 2
+        assert out_doc.tables[0].rows[1].cells[0].text == "Latency"
+        assert out_doc.tables[0].rows[1].cells[1].text == "12ms"
+
+
 class TestHumanizerSuite(unittest.TestCase):
     def test_1_waterfall(self):
         test_multi_model_priority_waterfall_failover()
@@ -319,6 +365,9 @@ class TestHumanizerSuite(unittest.TestCase):
 
     def test_6_flask_api(self):
         test_flask_api_endpoints_and_zero_emojis()
+
+    def test_7_docx(self):
+        test_docx_drag_drop_in_place_processing()
 
 
 if __name__ == "__main__":

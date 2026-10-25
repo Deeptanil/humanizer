@@ -104,6 +104,23 @@ def inspect_watermark():
     return jsonify(inspect_result)
 
 
+@app.route("/api/extract-docx", methods=["POST"])
+def extract_docx():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    file = request.files["file"]
+    if not file.filename.lower().endswith(".docx"):
+        return jsonify({"error": "Only .docx files are supported"}), 400
+
+    filename = secure_filename(file.filename)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_path = os.path.join(tmpdir, filename)
+        file.save(input_path)
+        data = docx_proc.extract_text(input_path)
+        data["filename"] = filename
+        return jsonify(data)
+
+
 @app.route("/api/upload-docx", methods=["POST"])
 def upload_docx():
     if "file" not in request.files:

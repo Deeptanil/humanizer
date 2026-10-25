@@ -98,12 +98,31 @@
 
       <!-- Editor Panes (Side-by-Side) -->
       <div class="editor-grid">
-        <div class="editor-pane">
+        <div class="editor-pane" id="inputPane">
           <div class="pane-header">
-            <span class="pane-title">Original Draft</span>
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+              <span class="pane-title">Original Draft</span>
+              <span id="docBadge" class="badge badge-yellow" style="display: none;" title="Loaded Document">
+                <svg class="svg-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span id="docBadgeName">document.docx</span>
+              </span>
+            </div>
             <span id="inputWordCount" class="word-counter">0 words</span>
           </div>
-          <textarea id="inputText" placeholder="Paste your thesis chapter, abstract, methodology, or discussion here..."></textarea>
+          <div class="editor-area-wrapper">
+            <textarea id="inputText" placeholder="Paste your thesis chapter or drag &amp; drop a .docx, .txt, or .md document here..."></textarea>
+            <div id="dropOverlay" class="drop-overlay" style="display: none;">
+              <div class="drop-overlay-box">
+                <svg class="svg-icon" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span class="drop-title">DROP DOCUMENT HERE</span>
+                <span class="drop-subtitle">SUPPORTS .DOCX, .TXT, .MD (TABLES &amp; STYLES PRESERVED)</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="editor-pane">
@@ -111,6 +130,10 @@
             <span class="pane-title">Humanized Result</span>
             <div class="pane-tools">
               <span id="outputWordCount" class="word-counter">0 words</span>
+              <button id="downloadDocxBtn" class="btn btn-secondary btn-sm" style="display: none;" title="Download Humanized Word Document">
+                <svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                DOWNLOAD .DOCX
+              </button>
               <button id="copyBtn" class="btn btn-accent btn-sm">
                 <svg class="svg-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                 COPY TEXT

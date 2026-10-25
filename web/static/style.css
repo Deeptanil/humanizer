@@ -534,6 +534,58 @@ input[type="range"]::-moz-range-thumb {
   color: var(--comic-yellow);
 }
 
+.editor-area-wrapper {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 400px;
+}
+
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(11, 14, 23, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 16px;
+}
+
+.drop-overlay-box {
+  width: 100%;
+  height: 100%;
+  border: 3px dashed var(--comic-cyan);
+  border-radius: var(--radius-comic);
+  background-color: rgba(0, 240, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--comic-cyan);
+  pointer-events: none;
+  text-align: center;
+  padding: 20px;
+}
+
+.drop-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #FFFFFF;
+}
+
+.drop-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--comic-yellow);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 textarea {
   flex: 1;
   padding: 20px;

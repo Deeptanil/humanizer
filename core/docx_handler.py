@@ -13,6 +13,36 @@ class DocxProcessor:
     def __init__(self, engine: HumanizerEngine):
         self.engine = engine
 
+    def extract_text(self, input_path: str) -> Dict[str, Any]:
+        """
+        Extracts all paragraph and table text from a .docx file for preview.
+        """
+        doc = Document(input_path)
+        lines = []
+        for p in doc.paragraphs:
+            t = p.text.strip()
+            if t:
+                lines.append(t)
+        for t_idx, table in enumerate(doc.tables):
+            lines.append(f"\n[Table {t_idx + 1}]")
+            for row in table.rows:
+                # Deduplicate identical adjacent cells caused by merged horizontal cells
+                row_texts = []
+                for cell in row.cells:
+                    ct = cell.text.strip()
+                    if ct and (not row_texts or row_texts[-1] != ct):
+                        row_texts.append(ct)
+                if row_texts:
+                    lines.append(" | ".join(row_texts))
+
+        full_text = "\n\n".join(lines)
+        return {
+            "text": full_text,
+            "paragraphs": len(doc.paragraphs),
+            "tables": len(doc.tables),
+            "word_count": len(full_text.split()),
+        }
+
     def process_file(self, input_path: str, output_path: str, intensity: float = 0.6) -> Dict[str, Any]:
         """
         Processes a .docx file in-place, rewriting text while preserving document structure.
