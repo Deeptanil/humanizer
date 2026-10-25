@@ -235,6 +235,20 @@ def analyze_ai_Footprint(text: str) -> Dict[str, Any]:
 
     mattr = calculate_mattr(words, window=50)
 
+    # Blend with neural AI detector (texthumanize) when available
+    try:
+        import texthumanize
+        det = texthumanize.detect_ai(text)
+        if isinstance(det, dict) and "score" in det:
+            neural_risk = int(round(det["score"] * 100.0))
+            ai_risk = int(round(neural_risk * 0.75 + ai_risk * 0.25))
+            if "metrics" in det and isinstance(det["metrics"], dict):
+                burst_val = det["metrics"].get("burstiness")
+                if burst_val is not None:
+                    burstiness_score = int(round(max(10.0, min(95.0, (1.0 - burst_val) * 100.0))))
+    except Exception:
+        pass
+
     return {
         "words": word_count,
         "ai_risk": ai_risk,

@@ -475,27 +475,29 @@ def inject_burstiness_and_structure(
     processed_sentences: List[str] = []
 
     for sent in sentences:
-        # 1. Break participial -ing tails
-        sent, c_tail = break_participial_tails(sent, rng)
-        changes += c_tail
+        # 1. Break participial -ing tails (only in offline fallback mode)
+        if not llm_was_used:
+            sent, c_tail = break_participial_tails(sent, rng)
+            changes += c_tail
 
-        # 2. Break "not only X but also Y" template
-        not_only_match = re.search(
-            r"^(.*?)\bnot\s+only\s+([^,;]+?)\s*,?\s+but\s+(?:also\s+)?([^.!?]+)([.!?])$",
-            sent,
-            flags=re.IGNORECASE,
-        )
-        if not_only_match:
-            prefix, part1, part2, punct = not_only_match.groups()
-            p2_str = part2.strip()
-            first_word_p2 = p2_str.split()[0].lower() if p2_str.split() else ""
-            if first_word_p2.endswith("s") and first_word_p2 not in ("this", "these", "its", "systems", "nodes", "models", "methods"):
-                sent = f"{prefix}{part1.strip()}. It also {p2_str}{punct}"
-            elif first_word_p2 in ("significantly", "noticeably", "greatly", "further", "also", "directly", "substantially", "heavily"):
-                sent = f"{prefix}{part1.strip()}. Beyond that, it {p2_str}{punct}"
-            else:
-                sent = f"{prefix}{part1.strip()}. Beyond that, {p2_str}{punct}"
-            changes += 1
+        # 2. Break "not only X but also Y" template (only in offline fallback mode)
+        if not llm_was_used:
+            not_only_match = re.search(
+                r"^(.*?)\bnot\s+only\s+([^,;]+?)\s*,?\s+but\s+(?:also\s+)?([^.!?]+)([.!?])$",
+                sent,
+                flags=re.IGNORECASE,
+            )
+            if not_only_match:
+                prefix, part1, part2, punct = not_only_match.groups()
+                p2_str = part2.strip()
+                first_word_p2 = p2_str.split()[0].lower() if p2_str.split() else ""
+                if first_word_p2.endswith("s") and first_word_p2 not in ("this", "these", "its", "systems", "nodes", "models", "methods"):
+                    sent = f"{prefix}{part1.strip()}. It also {p2_str}{punct}"
+                elif first_word_p2 in ("significantly", "noticeably", "greatly", "further", "also", "directly", "substantially", "heavily"):
+                    sent = f"{prefix}{part1.strip()}. Beyond that, it {p2_str}{punct}"
+                else:
+                    sent = f"{prefix}{part1.strip()}. Beyond that, {p2_str}{punct}"
+                changes += 1
 
         # 3. Formulaic participial modifier expansion (e.g. "platform providing X" -> "platform that provides X")
         part_mod_match = re.search(

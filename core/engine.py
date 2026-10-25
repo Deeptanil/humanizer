@@ -232,7 +232,15 @@ class HumanizerEngine:
                     "replacement": f"Rewritten via {model_used} ({len(block.split())}w)",
                 })
 
-        # Layer 2: Deterministic Post-Processor (StealthHumanizer + Moonlit-Pages)
+        # Layer 2: Deterministic Post-Processor & Watermark Stripping
+        try:
+            import texthumanize
+            cleaned_wm = texthumanize.clean_watermarks(block)
+            if cleaned_wm and isinstance(cleaned_wm, str):
+                block = cleaned_wm
+        except Exception:
+            pass
+
         block, det_changes = deterministic_postprocess(
             block,
             intensity=intensity,
@@ -257,44 +265,6 @@ class HumanizerEngine:
             # Re-run deterministic structural cleanup after fallback swaps
             block, det2_changes = deterministic_postprocess(block, intensity=intensity, rng=self.rng, llm_was_used=False)
             all_changes.extend(det2_changes)
-
-        # Layer 3: Adversarial Self-Check Loop
-        # If Gemini is active and the chunk's AI risk is still > 12%, run a targeted 2nd pass
-        if model_used is not None:
-            post_metrics = self.calculate_metrics(block)
-            if post_metrics["ai_risk"] > 12 and len(block.split()) >= 20:
-                flagged = ", ".join(post_metrics.get("flagged_phrases", [])) or "uniform sentence length"
-                retry_extra = (
-                    f"The previous draft still scored {post_metrics['ai_risk']}% AI risk due to: {flagged}. "
-                    "Mix short 5-8 word sentences with medium 14-22 word sentences, avoid any sentence >24 words "
-                    "with 3+ commas, use plain concrete verbs, and keep all [P0]/[P1] paragraph tags and __PROT_X__ tokens."
-                )
-                if extra_instructions:
-                    retry_extra = extra_instructions + "\n" + retry_extra
-                wf_retry = self.waterfall.rewrite_with_waterfall(
-                    block,
-                    intensity=min(0.95, intensity + 0.12),
-                    extra_instructions=retry_extra,
-                    preferred_model_offset=preferred_model_offset + 1,
-                )
-                attempts_log.extend(wf_retry.get("attempts", []))
-                if wf_retry.get("success") and wf_retry.get("text"):
-                    candidate, cand_changes = deterministic_postprocess(
-                        wf_retry["text"],
-                        intensity=intensity,
-                        rng=self.rng,
-                        llm_was_used=True,
-                    )
-                    cand_metrics = self.calculate_metrics(candidate)
-                    if cand_metrics["ai_risk"] <= post_metrics["ai_risk"]:
-                        block = candidate
-                        model_used = wf_retry.get("model_used") or model_used
-                        all_changes.extend(cand_changes)
-                        all_changes.append({
-                            "type": "adversarial_pass_2",
-                            "original": f"Risk {post_metrics['ai_risk']}%",
-                            "replacement": f"Risk {cand_metrics['ai_risk']}% ({model_used})",
-                        })
 
         return block, all_changes, model_used, attempts_log
 

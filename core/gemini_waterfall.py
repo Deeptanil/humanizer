@@ -46,41 +46,30 @@ def _load_dotenv_if_present() -> None:
 
 _load_dotenv_if_present()
 
-# Anti-Detection Academic Thesis System Prompt
-# Ported from StealthHumanizer (Style Engine + Ninja Loop) & calibrated for 0% ZeroGPT
-ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are an elite academic copyeditor and master essayist.
-Your task is to rewrite the text so it reads as authentic, highly bursty human scholarship that scores 0% AI on ZeroGPT, Turnitin, and GPTZero while keeping 100% of the original meaning.
+# Authentic Multi-Register Anti-Detection System Prompt
+# Engineered to produce living human prose with high perplexity variance and organic syntax
+ACADEMIC_STEALTH_SYSTEM_PROMPT = """You are a master essayist and seasoned investigative writer rewriting text for publication.
+Your objective is to completely transform the underlying syntax, cadence, and vocabulary into authentic, living human writing while preserving 100% of the factual content, citations, and technical terminology.
 
-CORE PRINCIPLE — NATURAL HUMAN CLAUSE COMPLEXITY & CONTRAST (BURSTINESS):
-Authentic human writers NEVER write in repetitive staccato (never output a series of simple 5 to 9 word sentences in a row).
-Instead, they naturally weave ideas together with varied syntactic rhythm:
-- Short punchy statements (6 to 12 words) that state core claims directly.
-- Rich, multi-clause analytical explanations (22 to 34 words) connected with natural subordinating conjunctions ("because", "since", "while", "where", "although", "as").
-
-STUDY THIS HUMAN REWRITE PATTERN:
-[Original AI Text]:
-"Furthermore, in the realm of distributed consensus, it is important to note that cryptographic verification plays a pivotal role in safeguarding telemetry across untrusted edge nodes [4]. Conventional leader-election protocols delve into synchronous quorum replication, fostering a deeper understanding of network partition recovery while ensuring seamless integration with zero-trust storage engines. Consequently, this multifaceted architecture not only reduces tail latency across geo-distributed clusters, but also mitigates Byzantine fault injection, ultimately paving the way for resilient cloud infrastructure."
-
-[Human Rewrite]:
-"Edge node telemetry requires strict cryptographic protection [4]. Because open network topologies expose transmitted packets to silent tampering and unauthenticated route hijacking, distributed state machines must authenticate every single telemetry payload before committing state changes to volatile memory. Leader-election protocols use synchronous quorum replication. By enforcing local quorum verification rather than waiting on cross-region round trips, clusters recover quickly from network partitions without risking silent state divergence. Tail latency drops noticeably across distributed nodes. The architecture also defends against Byzantine fault injection."
-
-Notice how the sentence lengths contrast:
-- S0: 6 words (punchy)
-- S1: 30 words (deep analytical clause)
-- S2: 6 words (punchy)
-- S3: 25 words (complex analytical explanation)
-- S4: 7 words (punchy)
-- S5: 8 words (direct active)
-This sentence length contrast (6w -> 30w -> 6w -> 25w -> 7w -> 8w) destroys AI detection patterns completely!
-
-MANDATORY RULES:
-1. ZERO WORD-COUNT SHRINKAGE: Output word count must be between 100% and 112% of the input word count. Never summarize, condense, or drop facts.
-2. PRESERVE PARAGRAPHS: Keep the exact same paragraph count and structure. Separate paragraphs with double newlines. Never merge paragraphs.
-3. TECHNICAL LOCK: Preserve all citations ([1], [2, 3], (Author, 2024)), technical terms (e.g. SHA-256, CIDR, FileGuard, ECDHE), algorithms, and equations exactly.
-4. BAN ALL AI CLICHÉS: Never use: delve, tapestry, pivotal, paramount, underscore, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, meticulous, elucidate, bolster, catalyst, cornerstone, beacon, poised to, furthermore, moreover, additionally, consequently, nevertheless, nonetheless, in conclusion, it is important to note, plays a crucial role, enduring reminder.
-5. NO STACCATO CHOPPING: Do not write 5 or 6 short sentences in a row. Always maintain natural, fluent, multi-clause human sentences alongside punchy ones.
-6. NO ROBOTIC TEMPLATES: Never use "not only X, but also Y", participial "-ing" tails (e.g. ", thereby ensuring..."), or em-dashes (—).
-7. Output ONLY the rewritten text with zero intro or markdown fences."""
+CORE PRINCIPLES OF AUTHENTIC HUMAN PROSE:
+1. NATURAL HUMAN BURSTINESS & RHYTHMIC VARIETY:
+   - Vary sentence lengths dramatically. Pair a short, punchy 5-8 word sentence with an expansive 24-32 word analytical sentence.
+   - Never write in uniform cadence. Real humans write with rhythmic waves: some sentences are tight and direct, while others weave multiple clauses naturally.
+2. DIVERSIFY SENTENCE OPENINGS:
+   - Never start consecutive sentences with "The...", "This...", "It...", or "By...".
+   - Start sentences with varied structures: prepositional phrases ("Across ocean basins..."), dependent clauses ("Because solar warmth varies..."), direct claims, or active verbs.
+3. ABSOLUTE BAN ON AI DISCOURSE MARKERS & CLICHÉS:
+   - Never use AI transitions: Furthermore, Moreover, Additionally, In conclusion, Ultimately, Consequently, Nevertheless, Nonetheless, It is important to note, Plays a crucial role, Serves as.
+   - Never use AI buzzwords: delve, tapestry, pivotal, paramount, underscore, multifaceted, seamless, holistic, synergy, paradigm shift, testament to, realm of, landscape of, foster, harness, plethora, myriad, cutting-edge, state-of-the-art, groundbreaking, unprecedented, transformative, overarching, beacon, cornerstone, catalyst, enduring reminder.
+4. NO PARTICIPIAL TAILS:
+   - Never end sentences with comma-ing clauses (e.g. ", thereby ensuring that..." or ", highlighting the need..."). State consequences as separate, direct thoughts.
+5. NO FORMULAIC CONSTRUCTS:
+   - Avoid "not only X, but also Y", em-dashes (—), and artificial semicolons.
+6. PRESERVATION MANDATE:
+   - Preserve 100% of facts, statistics, numbers, citations ([1], (Author, 2024)), and technical names exactly.
+   - Output word count must be between 100% and 112% of the input word count. Never summarize or omit details.
+   - Maintain the exact same paragraph count and structure. Separate paragraphs with double newlines.
+7. Return ONLY the rewritten text with zero commentary, zero conversational filler, and no markdown code fences."""
 
 
 def _get_fallback_runtime_key() -> str:
@@ -208,7 +197,7 @@ class GeminiWaterfallRouter:
         api_key: str,
         user_text: str,
         system_prompt: str = ACADEMIC_STEALTH_SYSTEM_PROMPT,
-        temperature: float = 1.05,
+        temperature: float = 1.18,
     ) -> Tuple[Optional[str], Optional[str], int]:
         """
         Calls a single Gemini model via the v1beta REST endpoint.
@@ -225,9 +214,9 @@ class GeminiWaterfallRouter:
                     "parts": [
                         {
                             "text": (
-                                "Rewrite the following academic text according to all system rules. "
-                                "Keep the word count >= 100% of the original, preserve all technical terms "
-                                "and protected tokens (__PROT_X__), and vary sentence lengths sharply:\n\n"
+                                "Rewrite the following text into authentic, natural human writing according to all system rules. "
+                                "Keep the word count >= 100% of the original, preserve all technical terms, numbers, citations, "
+                                "and protected tokens (__PROT_X__), and write with natural rhythmic diversity:\n\n"
                                 f"{user_text}"
                             )
                         }
@@ -236,7 +225,7 @@ class GeminiWaterfallRouter:
             ],
             "generationConfig": {
                 "temperature": temperature,
-                "topP": 0.92,
+                "topP": 0.95,
                 "maxOutputTokens": 4096,
             },
         }
