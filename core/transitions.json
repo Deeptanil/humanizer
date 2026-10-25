@@ -1,0 +1,27 @@
+{
+  "addition": {
+    "furthermore": ["moreover", "in addition", "additionally", "alongside this", "further"],
+    "moreover": ["furthermore", "in addition", "additionally", "besides this"],
+    "in addition": ["additionally", "furthermore", "moreover", "as well as this"],
+    "additionally": ["furthermore", "in addition", "moreover", "concurrently"]
+  },
+  "contrast": {
+    "however": ["nevertheless", "nonetheless", "conversely", "on the other hand", "that said"],
+    "nevertheless": ["nonetheless", "however", "even so", "regardless"],
+    "conversely": ["in contrast", "on the contrary", "by comparison", "counter to this"],
+    "on the other hand": ["conversely", "in contrast", "by comparison"]
+  },
+  "cause_effect": {
+    "therefore": ["consequently", "thus", "hence", "accordingly", "as a result"],
+    "consequently": ["as a result", "therefore", "thus", "accordingly"],
+    "thus": ["hence", "accordingly", "consequently", "thereby"],
+    "as a result": ["consequently", "subsequently", "accordingly", "in consequence"]
+  },
+  "clarification": {
+    "specifically": ["in particular", "more precisely", "to be specific", "namely"],
+    "in particular": ["specifically", "notably", "especially"],
+    "in other words": ["put differently", "stated another way", "that is to say"],
+    "notably": ["significantly", "remarkably", "importantly", "prominently"]
+  }
+}
+
