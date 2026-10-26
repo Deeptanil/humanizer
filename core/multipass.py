@@ -60,6 +60,13 @@ HIGH_SEVERITY_PATTERNS: List[Tuple[str, List[str]]] = [
     (r"\bgroundbreaking\b", ["pioneering", "notable", "significant"]),
     (r"\btransformative\b", ["pivotal", "sweeping", "far-reaching"]),
     (r"\boverarching\b", ["primary", "broad", "governing"]),
+    # Thesaurus Syndrome & Purple Prose Dismantling
+    (r"\bsculpts?\s+terrestrial\s+geography\b", ["shapes the landscape", "shapes the land", "carves the earth"]),
+    (r"\bpropels?\s+worldwide\s+weather\s+engines\b", ["drives the global climate", "powers global weather patterns"]),
+    (r"\bconstitutes?\s+the\s+basic\s+definition\s+of\b", ["is basically", "is simply", "amounts to"]),
+    (r"\barchitectural\s+staples\b", ["common sights", "familiar landmarks", "regular fixtures"]),
+    (r"\bcontemporary\s+heirs\b", ["modern descendants", "modern versions"]),
+    (r"\bmilling\s+devices\b", ["traditional mills", "old windmills"]),
 ]
 
 
@@ -133,12 +140,20 @@ QUALIFYING_SHIFTS = [
 ]
 
 
-def pass_2_cognitive_injection(text: str, rng: random.Random) -> Tuple[str, List[Dict[str, str]]]:
+def pass_2_cognitive_injection(
+    text: str,
+    rng: random.Random,
+    llm_was_used: bool = False,
+) -> Tuple[str, List[Dict[str, str]]]:
     """
     Pass 2: Cognitive Signal & Voice Injection
     Injects human cognitive artifacts (parenthetical qualifiers, confidence gradients)
     that discriminative classifiers look for when confirming human authorship.
+    When LLM was used, preserves the model's natural cadence and avoids synthetic injections.
     """
+    if llm_was_used:
+        return text, []
+
     changes: List[Dict[str, str]] = []
     paragraphs = text.split("\n\n")
     processed_paragraphs = []
@@ -202,18 +217,24 @@ def calculate_burstiness_stats(sents: List[str]) -> Tuple[float, float, float]:
     return mu, sigma, cv
 
 
-def pass_3_statistical_tuning(text: str, rng: random.Random) -> Tuple[str, List[Dict[str, str]]]:
+def pass_3_statistical_tuning(
+    text: str,
+    rng: random.Random,
+    llm_was_used: bool = False,
+) -> Tuple[str, List[Dict[str, str]]]:
     """
     Pass 3: Statistical & Metric Tuning
-    Actively forces:
-    1. Sentence length standard deviation sigma_L >= 8.0
-    2. Coefficient of variation CV_S >= 0.45
-    3. Sharp contrast: Presence of short punchy assertions (3-8 words) paired with periodic sentences (25-35 words).
+    Actively protects and forces high sentence length variance:
+    1. Preserves expansive compound-complex periodic sentences (24-34 words).
+    2. Only splits runaway sentences (> 38 words).
+    3. Ensures at least one short punchy assertion (3-8 words) per paragraph.
     4. Diverse sentence opening entropy.
     """
     changes: List[Dict[str, str]] = []
     paragraphs = text.split("\n\n")
     rebuilt_paragraphs = []
+
+    split_threshold = 40 if llm_was_used else 32
 
     for p in paragraphs:
         if not p.strip() or p.strip().startswith("#"):
@@ -227,55 +248,54 @@ def pass_3_statistical_tuning(text: str, rng: random.Random) -> Tuple[str, List[
 
         mu, sigma, cv = calculate_burstiness_stats(sents)
 
-        # If burstiness is below human target (sigma_L < 8.0 or CV_S < 0.45), inject clausal asymmetry
-        if sigma < 8.0 or cv < 0.45 or not any(len(s.split()) <= 8 for s in sents):
-            tuned_sents: List[str] = []
-            for s in sents:
-                words = s.split()
-                w_len = len(words)
+        # Only intervene if runaway sentences exist or if there's no short fragment at all
+        tuned_sents: List[str] = []
+        for s in sents:
+            words = s.split()
+            w_len = len(words)
 
-                # Split long compound-complex sentences (>= 20 words with a coordinator/subordinator)
-                if w_len >= 20 and not any(ch in s for ch in [";", "(", ")"]):
-                    # 1. Match coordinating conjunctions: ", but ", ", yet ", ", and [subject]"
-                    coord_match = re.search(
-                        r"^(.*?),\s+(yet|but|and\s+(?:it|this|they|these|we)|whereby|whereas|while)\s+(.+?)([.!?])$",
-                        s,
-                        flags=re.IGNORECASE,
-                    )
-                    # 2. Match front participial clauses: "V-ing ..., [Main Clause]."
-                    ing_front_match = re.search(
-                        r"^([A-Z][a-z]+ing\s+[^,]{10,25}),\s+([^,]{15,})([.!?])$",
-                        s,
-                    )
+            # Split only truly runaway sentences (>= split_threshold words)
+            if w_len >= split_threshold and not any(ch in s for ch in [";", "(", ")"]):
+                # 1. Match coordinating conjunctions: ", but ", ", yet ", ", and [subject]"
+                coord_match = re.search(
+                    r"^(.*?),\s+(yet|but|and\s+(?:it|this|they|these|we)|whereby|whereas|while)\s+(.+?)([.!?])$",
+                    s,
+                    flags=re.IGNORECASE,
+                )
+                # 2. Match front participial clauses: "V-ing ..., [Main Clause]."
+                ing_front_match = re.search(
+                    r"^([A-Z][a-z]+ing\s+[^,]{10,25}),\s+([^,]{15,})([.!?])$",
+                    s,
+                )
 
-                    if coord_match:
-                        first_c, conj, second_c, punct = coord_match.groups()
-                        c_lower = conj.lower().strip()
-                        if c_lower in ("yet", "but"):
-                            sec_cap = second_c.strip()[0].upper() + second_c.strip()[1:]
-                            tuned_sents.append(f"{first_c.strip()}.")
-                            tuned_sents.append(f"{c_lower.capitalize()} {second_c.strip()}{punct}")
-                            changes.append({"type": "pass3_burstiness_split", "original": s[:35], "replacement": f". {c_lower.capitalize()} "})
-                        elif c_lower.startswith("and "):
-                            pronoun = c_lower.split()[1].capitalize()
-                            tuned_sents.append(f"{first_c.strip()}.")
-                            tuned_sents.append(f"{pronoun} {second_c.strip()}{punct}")
-                            changes.append({"type": "pass3_burstiness_split", "original": s[:35], "replacement": f". {pronoun} "})
-                        elif c_lower in ("while", "whereas"):
-                            tuned_sents.append(f"{first_c.strip()}; {c_lower} {second_c.strip()}{punct}")
-                            changes.append({"type": "pass3_semicolon_period", "original": s[:35], "replacement": "semicolon_clause"})
-                        else:
-                            tuned_sents.append(s)
-                    elif ing_front_match and (sigma < 8.0 or cv < 0.40):
-                        front_ing, main_cl, punct = ing_front_match.groups()
-                        main_cap = main_cl[0].upper() + main_cl[1:] if len(main_cl) > 1 else main_cl.upper()
-                        tuned_sents.append(f"{main_cap}{punct}")
-                        tuned_sents.append(f"In doing so, it functions by {front_ing.lower()}{punct}")
-                        changes.append({"type": "pass3_front_ing_inversion", "original": s[:35], "replacement": "inverted_clauses"})
+                if coord_match:
+                    first_c, conj, second_c, punct = coord_match.groups()
+                    c_lower = conj.lower().strip()
+                    if c_lower in ("yet", "but"):
+                        sec_cap = second_c.strip()[0].upper() + second_c.strip()[1:]
+                        tuned_sents.append(f"{first_c.strip()}.")
+                        tuned_sents.append(f"{c_lower.capitalize()} {second_c.strip()}{punct}")
+                        changes.append({"type": "pass3_burstiness_split", "original": s[:35], "replacement": f". {c_lower.capitalize()} "})
+                    elif c_lower.startswith("and "):
+                        pronoun = c_lower.split()[1].capitalize()
+                        tuned_sents.append(f"{first_c.strip()}.")
+                        tuned_sents.append(f"{pronoun} {second_c.strip()}{punct}")
+                        changes.append({"type": "pass3_burstiness_split", "original": s[:35], "replacement": f". {pronoun} "})
+                    elif c_lower in ("while", "whereas"):
+                        tuned_sents.append(f"{first_c.strip()}; {c_lower} {second_c.strip()}{punct}")
+                        changes.append({"type": "pass3_semicolon_period", "original": s[:35], "replacement": "semicolon_clause"})
                     else:
                         tuned_sents.append(s)
+                elif ing_front_match and (sigma < 8.0 or cv < 0.40):
+                    front_ing, main_cl, punct = ing_front_match.groups()
+                    main_cap = main_cl[0].upper() + main_cl[1:] if len(main_cl) > 1 else main_cl.upper()
+                    tuned_sents.append(f"{main_cap}{punct}")
+                    tuned_sents.append(f"In doing so, it functions by {front_ing.lower()}{punct}")
+                    changes.append({"type": "pass3_front_ing_inversion", "original": s[:35], "replacement": "inverted_clauses"})
                 else:
                     tuned_sents.append(s)
+            else:
+                tuned_sents.append(s)
             sents = tuned_sents
 
         # Opening Entropy Optimization: Ensure adjacent sentences do not start with the same word
@@ -434,11 +454,11 @@ def execute_generation_3_pipeline(
     all_changes.extend(p1_changes)
 
     # Pass 2: Cognitive Signal & Voice Injection
-    text, p2_changes = pass_2_cognitive_injection(text, rng)
+    text, p2_changes = pass_2_cognitive_injection(text, rng, llm_was_used=llm_was_used)
     all_changes.extend(p2_changes)
 
     # Pass 3: Statistical & Metric Tuning (Burstiness & Entropy)
-    text, p3_changes = pass_3_statistical_tuning(text, rng)
+    text, p3_changes = pass_3_statistical_tuning(text, rng, llm_was_used=llm_was_used)
     all_changes.extend(p3_changes)
 
     # Pass 4: Verification & Audit Gate

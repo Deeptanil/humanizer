@@ -379,45 +379,17 @@ class HumanizerEngine:
                 prose_paras.append(stripped)
 
         if prose_paras:
-            if len(prose_paras) == 1:
+            for p_idx, (slot_idx, para) in enumerate(zip(prose_indices, prose_paras)):
                 rw_text, ch, m_used, att = self._process_single_paragraph(
-                    prose_paras[0],
+                    para,
                     intensity,
-                    preferred_model_offset=preferred_model_offset,
+                    preferred_model_offset=preferred_model_offset + p_idx,
                 )
                 all_changes.extend(ch)
-                if m_used:
+                if m_used and m_used not in models_used:
                     models_used.append(m_used)
                 waterfall_attempts.extend(att)
-                out_lines[prose_indices[0]] = re.sub(r"\s+", " ", rw_text).strip()
-            else:
-                tagged_input = "\n\n".join(f"[P{i}] {p}" for i, p in enumerate(prose_paras))
-                batch_instruction = (
-                    f"The input contains {len(prose_paras)} paragraphs labeled [P0] through [P{len(prose_paras) - 1}]. "
-                    f"You MUST keep every [P0], [P1], ... [P{len(prose_paras) - 1}] marker at the start of its corresponding "
-                    "rewritten paragraph so the exact paragraph count is preserved."
-                )
-                rw_batch, ch, m_used, att = self._process_single_paragraph(
-                    tagged_input,
-                    intensity,
-                    preferred_model_offset=preferred_model_offset,
-                    extra_instructions=batch_instruction,
-                )
-                all_changes.extend(ch)
-                if m_used:
-                    models_used.append(m_used)
-                waterfall_attempts.extend(att)
-
-                unpacked = self._unpack_batched_paragraphs(rw_batch, prose_paras)
-                for slot_idx, para_text in zip(prose_indices, unpacked):
-                    # Run final line-level postprocess check after unpacking
-                    clean_p, _ = deterministic_postprocess(
-                        para_text,
-                        intensity=intensity,
-                        rng=self.rng,
-                        llm_was_used=(m_used is not None),
-                    )
-                    out_lines[slot_idx] = re.sub(r"\s+", " ", clean_p).strip()
+                out_lines[slot_idx] = re.sub(r"\s+", " ", rw_text).strip()
 
         final_text = "\n".join(out_lines)
 

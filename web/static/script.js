@@ -338,11 +338,11 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
     try {
       const intensity = parseInt(intensitySlider.value, 10) / 100.0;
 
-      // Step 1: Split document into safe ~550-word chunks + get baseline AI risk
+      // Step 1: Split document into safe ~220-word chunks + get baseline AI risk
       const chunkRes = await fetch("/api/chunk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, max_words_per_chunk: 550 })
+        body: JSON.stringify({ text, max_words_per_chunk: 220 })
       });
 
       if (!chunkRes.ok) {

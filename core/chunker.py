@@ -78,9 +78,9 @@ def split_oversized_paragraph(paragraph: str, max_words: int = 650) -> List[str]
     return blocks
 
 
-def chunk_document(text: str, max_words_per_chunk: int = 550) -> List[Dict[str, Any]]:
+def chunk_document(text: str, max_words_per_chunk: int = 240) -> List[Dict[str, Any]]:
     """
-    Splits a full thesis or long document into ordered chunks.
+    Splits a full thesis or long document into ordered chunks (~180-240 words).
     Accumulates complete paragraphs without ever chopping inside a paragraph
     unless an individual paragraph alone exceeds `max_words_per_chunk`.
     """
@@ -112,7 +112,7 @@ def chunk_document(text: str, max_words_per_chunk: int = 550) -> List[Dict[str, 
 
         if is_heading_line(stripped):
             # If we already accumulated substantial prose, flush before starting new section
-            if current_words >= 350:
+            if current_words >= 160:
                 _flush()
             current_lines.append(stripped)
             continue

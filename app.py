@@ -55,7 +55,7 @@ def config_endpoint():
 def chunk_endpoint():
     data = request.get_json() or {}
     text = data.get("text", "")
-    max_words = int(data.get("max_words_per_chunk") or data.get("max_words") or 260)
+    max_words = int(data.get("max_words_per_chunk") or data.get("max_words") or 220)
     chunks = chunk_document(text, max_words_per_chunk=max_words)
     metrics_before = analyze_ai_Footprint(text)
     watermarks = WatermarkSanitizer.inspect(text)
