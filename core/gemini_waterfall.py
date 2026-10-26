@@ -214,9 +214,13 @@ class GeminiWaterfallRouter:
                     "parts": [
                         {
                             "text": (
-                                "Rewrite the following text into authentic, natural human writing according to all system rules. "
-                                "Keep the word count >= 100% of the original, preserve all technical terms, numbers, citations, "
-                                "and protected tokens (__PROT_X__), and write with natural rhythmic diversity:\n\n"
+                                "Transform this text into living human prose. Do NOT return original sentences with minor word swaps. "
+                                "Aggressively restructure the syntax and discourse: "
+                                "1. Invert clause orders (lead with causes, physical settings, or conditions). "
+                                "2. Alternate short, punchy 4-8 word assertions with rich 25-34 word compound-complex explanations. "
+                                "3. Use vivid, concrete vocabulary rather than generic abstractions. "
+                                "4. Never use AI transitions (Furthermore, Moreover, Additionally, Ultimately, In conclusion). "
+                                "5. Preserve 100% of facts, numbers, citations, equations, and __PROT_X__ tokens, keeping word count >= 100%:\n\n"
                                 f"{user_text}"
                             )
                         }

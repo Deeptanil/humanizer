@@ -18,6 +18,7 @@ from .detector import analyze_ai_Footprint, split_sentences
 from .postprocess import deterministic_postprocess
 from .chunker import chunk_document, is_heading_line
 from .gemini_waterfall import GeminiWaterfallRouter
+from .multipass import execute_generation_3_pipeline
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -232,26 +233,16 @@ class HumanizerEngine:
                     "replacement": f"Rewritten via {model_used} ({len(block.split())}w)",
                 })
 
-        # Layer 2: Deterministic Post-Processor & Watermark Stripping
-        try:
-            import texthumanize
-            cleaned_wm = texthumanize.clean_watermarks(block)
-            if cleaned_wm and isinstance(cleaned_wm, str):
-                block = cleaned_wm
-        except Exception:
-            pass
-
-        block, det_changes = deterministic_postprocess(
+        # Layer 2: Generation 3 Multi-Pass Pipeline (Pattern Stripping, Cognitive Signals, Burstiness sigma_L >= 8, Verification)
+        block, mpass_changes, report = execute_generation_3_pipeline(
             block,
             intensity=intensity,
             rng=self.rng,
             llm_was_used=(model_used is not None),
         )
-        all_changes.extend(det_changes)
+        all_changes.extend(mpass_changes)
 
-        # Only run regex phrase/transition/synonym fallbacks when offline (no LLM used);
-        # when Gemini rewrote the text, canned transition rotations and dictionary synonyms
-        # introduce repetitive phrases that AI detectors flag.
+        # Layer 3: Deterministic Quality Gate & Fallback Rotation (offline only)
         if model_used is None:
             block, phrase_changes = self._apply_phrase_rewrites(block, intensity)
             all_changes.extend(phrase_changes)
@@ -262,9 +253,13 @@ class HumanizerEngine:
             block, syn_changes = self._apply_synonyms(block, intensity, llm_was_used=False)
             all_changes.extend(syn_changes)
 
-            # Re-run deterministic structural cleanup after fallback swaps
-            block, det2_changes = deterministic_postprocess(block, intensity=intensity, rng=self.rng, llm_was_used=False)
-            all_changes.extend(det2_changes)
+        block, det_changes = deterministic_postprocess(
+            block,
+            intensity=intensity,
+            rng=self.rng,
+            llm_was_used=(model_used is not None),
+        )
+        all_changes.extend(det_changes)
 
         return block, all_changes, model_used, attempts_log
 
