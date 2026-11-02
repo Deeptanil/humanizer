@@ -593,6 +593,34 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
     }
   } catch (_) {}
 
+  // Deprecation Warning Modal Logic
+  const deprecationModal = document.getElementById("deprecationModal");
+  const dismissDeprecationBtn = document.getElementById("dismissDeprecationBtn");
+
+  if (dismissDeprecationBtn && deprecationModal) {
+    dismissDeprecationBtn.addEventListener("click", () => {
+      deprecationModal.classList.add("hidden");
+      try {
+        sessionStorage.setItem("turnitout_deprecation_dismissed", "true");
+      } catch (_) {}
+    });
+
+    deprecationModal.addEventListener("click", (e) => {
+      if (e.target === deprecationModal) {
+        deprecationModal.classList.add("hidden");
+        try {
+          sessionStorage.setItem("turnitout_deprecation_dismissed", "true");
+        } catch (_) {}
+      }
+    });
+
+    try {
+      if (sessionStorage.getItem("turnitout_deprecation_dismissed") === "true") {
+        deprecationModal.classList.add("hidden");
+      }
+    } catch (_) {}
+  }
+
   // API Key Settings Modal
   const apiKeyModal = document.getElementById("apiKeyModal");
   const apiKeySettingsBtn = document.getElementById("apiKeySettingsBtn");

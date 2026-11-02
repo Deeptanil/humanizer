@@ -1,11 +1,15 @@
 # Academic Thesis Humanizer & Anti-Detection Engine
 
+> [!CAUTION]
+> **PROJECT STATUS: DEPRECATED & DISCONTINUED**  
+> This project is no longer actively maintained. Practical testing against modern enterprise AI detectors (Turnitin, QuillBot, GPTZero) shows that automated text humanization algorithms cannot reliably evade detection. The code and website remain functional and accessible solely as an open technical and academic research archive.
+
 <p align="center">
-  <a href="https://humanizer.deeptanil.in"><img src="https://img.shields.io/badge/Live%20App-humanizer.deeptanil.in-FFDE59?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Live App"/></a>
+  <a href="https://humanizer.deeptanil.in"><img src="https://img.shields.io/badge/Live%20Archive-humanizer.deeptanil.in-FFDE59?style=for-the-badge&logo=googlechrome&logoColor=black" alt="Live Archive"/></a>
   <a href="https://github.com/Deeptanil/humanizer"><img src="https://img.shields.io/badge/GitHub-Deeptanil%2Fhumanizer-24292e?style=for-the-badge&logo=github" alt="GitHub Repository"/></a>
+  <img src="https://img.shields.io/badge/Status-Deprecated%20%2F%20Discontinued-FF2E93?style=for-the-badge" alt="Status: Deprecated"/>
   <img src="https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.14-00F0FF?style=for-the-badge&logo=python&logoColor=black" alt="Python 3.10+"/>
-  <img src="https://img.shields.io/badge/ZeroGPT%20AI%20Risk-0%25%20Verified-00FF66?style=for-the-badge" alt="0% AI Risk Verified"/>
-  <img src="https://img.shields.io/badge/Privacy-E2E%20Encrypted%20RAM-FF007F?style=for-the-badge" alt="End-to-End Encrypted"/>
+  <img src="https://img.shields.io/badge/Privacy-E2E%20Encrypted%20RAM-00FF66?style=for-the-badge" alt="End-to-End Encrypted"/>
 </p>
 
 ---

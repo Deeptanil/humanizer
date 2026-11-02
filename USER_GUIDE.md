@@ -1,6 +1,8 @@
-# 🎓 Turnitout Thesis Humanizer — Quick Start Guide
+# Turnitout Thesis Humanizer — Quick Start Guide
 
-A 100% offline, zero-generative-AI evasion engine built specifically to protect your academic thesis against **Turnitin, iThenticate, GPTZero, CopyLeaks, and ZeroGPT**.
+> [!CAUTION]
+> **PROJECT STATUS: DEPRECATED & DISCONTINUED**  
+> This project is no longer actively maintained. Modern AI detection engines (Turnitin, QuillBot, GPTZero) are not reliably bypassed by automated rewording algorithms. The tool remains operational for research and testing purposes only.
 
 ---
 

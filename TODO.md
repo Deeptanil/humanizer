@@ -1,4 +1,8 @@
-# Implementation Plan: Turnitout Core v1.6.0 Feature & Architecture Enhancements
+# Implementation Plan: Turnitout Core — Project Deprecated & Archived
+
+> [!CAUTION]
+> **PROJECT STATUS: DEPRECATED**  
+> Active feature development has ceased. The project is archived. Modern AI detectors cannot be reliably evaded with algorithmic text transformation.
 
 **Branching Strategy:** `main`  
 **Target Integration:** `src/turnitout/core/citation_engine.py`, `rules/academic/taxonomy/*`, `src/turnitout/ui/citation_ui.py`, `src/turnitout/ui/feedback_ui.py`  

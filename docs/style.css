@@ -2406,3 +2406,46 @@ body.dark-mode .floating-look-up-btn {
   color: #ECEFF4;
   border-color: rgba(255, 255, 255, 0.18);
 }
+
+/* ==========================================================================
+   DOCUMENTATION SITE DEPRECATION NOTICE
+   ========================================================================== */
+.docs-deprecation-banner {
+  background: #20050e;
+  border-bottom: 2px solid #ff2e93;
+  color: #ffe4e6;
+  padding: 10px 16px;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.docs-deprecation-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.docs-deprecation-badge {
+  background: #ff2e93;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.docs-deprecation-text strong {
+  color: #ff6097;
+}

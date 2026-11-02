@@ -970,3 +970,234 @@ textarea::placeholder {
     max-width: none;
   }
 }
+
+/* ==========================================================================
+   DEPRECATION & DISCONTINUATION WARNING SYSTEM
+   Sticky top warning banner and on-load deprecation modal dialog
+   ========================================================================== */
+.deprecation-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 9999;
+  background: #1a0510;
+  border-bottom: 3px solid #ff2e93;
+  box-shadow: 0 4px 18px rgba(255, 46, 147, 0.35);
+  padding: 10px 16px;
+  box-sizing: border-box;
+}
+
+.deprecation-banner-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: #fce7f3;
+}
+
+.deprecation-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ff2e93;
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #000;
+  flex-shrink: 0;
+}
+
+.deprecation-banner-text {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.deprecation-banner-text strong {
+  color: #ff5ca8;
+}
+
+.deprecation-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(6, 8, 14, 0.88);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 18px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.deprecation-modal-backdrop.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.deprecation-modal-card {
+  max-width: 620px;
+  width: 100%;
+  background: #111420;
+  border: 3px solid #ff2e93;
+  border-radius: var(--radius-comic);
+  box-shadow: 10px 10px 0px #ff2e93, 10px 10px 0px 3px #000000;
+  padding: 30px 28px;
+  color: var(--text-main);
+  animation: modalPopIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modalPopIn {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.deprecation-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid rgba(255, 46, 147, 0.25);
+  padding-bottom: 14px;
+}
+
+.deprecation-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: rgba(255, 46, 147, 0.15);
+  border: 2px solid #ff2e93;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff2e93;
+  flex-shrink: 0;
+}
+
+.deprecation-modal-title {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.deprecation-modal-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #ff5ca8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.deprecation-modal-body {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin-bottom: 22px;
+}
+
+.deprecation-modal-body p {
+  margin-bottom: 12px;
+}
+
+.deprecation-modal-callout {
+  background: rgba(255, 46, 147, 0.08);
+  border-left: 4px solid #ff2e93;
+  padding: 12px 14px;
+  border-radius: 0 6px 6px 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #fce7f3;
+  margin: 14px 0;
+}
+
+.deprecation-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.btn-danger-comic {
+  background: #ff2e93;
+  color: #ffffff;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 10px 18px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-danger-comic:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
+  background: #ff47a1;
+}
+
+.btn-danger-comic:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px #000000;
+}
+
+@media (max-width: 640px) {
+  .deprecation-banner {
+    padding: 8px 10px;
+  }
+  .deprecation-banner-inner {
+    font-size: 0.74rem;
+    gap: 8px;
+  }
+  .deprecation-modal-card {
+    padding: 20px 16px;
+  }
+  .deprecation-modal-title {
+    font-size: 1.05rem;
+  }
+  .deprecation-modal-body {
+    font-size: 0.84rem;
+  }
+  .deprecation-modal-actions {
+    flex-direction: column;
+  }
+  .deprecation-modal-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
