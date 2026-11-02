@@ -310,12 +310,39 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
   });
 
   // ==========================================================================
+  // Project Deprecation Modal Initialization & Dismissal
+  // ==========================================================================
+  const deprecationModal = document.getElementById("deprecationModal");
+  const dismissDeprecationBtn = document.getElementById("dismissDeprecationBtn");
+
+  if (dismissDeprecationBtn && deprecationModal) {
+    dismissDeprecationBtn.addEventListener("click", () => {
+      deprecationModal.style.display = "none";
+    });
+  }
+  if (deprecationModal) {
+    deprecationModal.addEventListener("click", (e) => {
+      if (e.target === deprecationModal) {
+        deprecationModal.style.display = "none";
+      }
+    });
+  }
+
+  // ==========================================================================
   // PARALLEL MULTI-MODEL SHARDED STREAMING HUMANIZER (10,000+ WORDS)
   // ==========================================================================
   humanizeBtn.addEventListener("click", async () => {
     const text = inputText.value.trim();
     if (!text) {
       alert("Please paste your thesis text or upload a .docx document to humanize.");
+      return;
+    }
+
+    // Deprecation Warning Notice
+    const proceed = confirm(
+      "PROJECT NOTICE:\nThis humanizer project is officially deprecated and discontinued. The engine does NOT reliably bypass modern AI detectors (e.g. ZeroGPT, Turnitin). Text may still be flagged as 95-100% AI.\n\nDo you want to run this anyway for experimental purposes?"
+    );
+    if (!proceed) {
       return;
     }
 

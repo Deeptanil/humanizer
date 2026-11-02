@@ -2449,3 +2449,105 @@ body.dark-mode .floating-look-up-btn {
 .docs-deprecation-text strong {
   color: #ff6097;
 }
+
+/* ==========================================================================
+   Deprecation Banner for Docs / Marketing Site
+   ========================================================================== */
+.docs-deprecation-banner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #D90429;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #D90429,
+    #D90429 14px,
+    #BA0424 14px,
+    #BA0424 28px
+  );
+  color: #FFFFFF;
+  border-bottom: 2px solid #000000;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+}
+
+.docs-deprecation-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: 1300px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.docs-deprecation-badge {
+  background: #FFE600;
+  color: #000000;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ==========================================================================
+   DOCUMENTATION SITE DEPRECATION NOTICE
+   ========================================================================== */
+.docs-deprecation-banner {
+  background: #20050e;
+  border-bottom: 2px solid #ff2e93;
+  color: #ffe4e6;
+  padding: 10px 16px;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.docs-deprecation-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.docs-deprecation-badge {
+  background: #ff2e93;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.docs-deprecation-text strong {
+  color: #ff6097;
+}

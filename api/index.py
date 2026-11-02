@@ -10,4 +10,3 @@ from app import app
 
 # Vercel WSGI entrypoint
 # The 'app' variable is imported by Vercel's Python runtime
-
