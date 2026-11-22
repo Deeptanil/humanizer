@@ -83,7 +83,7 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=20261122b">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Press+Start+2P&family=Space+Grotesk:wght@500;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
@@ -347,7 +347,7 @@
       </div>
       <div class="deprecation-modal-actions">
         <a href="https://github.com/Deeptanil/humanizer" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">VIEW GITHUB ARCHIVE</a>
-        <button id="dismissDeprecationBtn" class="btn-danger-comic" type="button">
+        <button id="dismissDeprecationBtn" class="btn-danger-comic" type="button" onclick="(function(){ const m = document.getElementById('deprecationModal'); if(m){ m.style.display='none'; m.classList.add('hidden'); try{sessionStorage.setItem('turnitout_deprecation_dismissed','true');}catch(_){} } })()">
           <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           I UNDERSTAND — PROCEED TO STUDIO
         </button>
@@ -359,6 +359,6 @@
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
   <script defer src="/_vercel/insights/script.js"></script>
-  <script src="/static/script.js"></script>
+  <script src="/static/script.js?v=20261122b"></script>
 </body>
 </html>

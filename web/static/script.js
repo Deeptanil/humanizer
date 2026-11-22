@@ -626,6 +626,7 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
 
   if (dismissDeprecationBtn && deprecationModal) {
     dismissDeprecationBtn.addEventListener("click", () => {
+      deprecationModal.style.display = "none";
       deprecationModal.classList.add("hidden");
       try {
         sessionStorage.setItem("turnitout_deprecation_dismissed", "true");
@@ -634,6 +635,7 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
 
     deprecationModal.addEventListener("click", (e) => {
       if (e.target === deprecationModal) {
+        deprecationModal.style.display = "none";
         deprecationModal.classList.add("hidden");
         try {
           sessionStorage.setItem("turnitout_deprecation_dismissed", "true");
@@ -643,6 +645,7 @@ Long-context sequence modeling requires substantial memory bandwidth due to quad
 
     try {
       if (sessionStorage.getItem("turnitout_deprecation_dismissed") === "true") {
+        deprecationModal.style.display = "none";
         deprecationModal.classList.add("hidden");
       }
     } catch (_) {}
