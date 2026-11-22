@@ -97,7 +97,7 @@ def replace_paragraph_text_preserving_style(paragraph, new_text: str):
         first_run.font.color.rgb = color
 
 
-def parse_and_chunk_docx(filepath: str, target_chunk_words: int = 900):
+def parse_and_chunk_docx(filepath: str, target_chunk_words: int = 2500):
     doc = docx.Document(filepath)
     eligible_items = []
     locked_headings = 0
@@ -353,7 +353,7 @@ STUDIO_HTML = """<!DOCTYPE html>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="statTotalChunks">{{ state.chunks|length }}</div>
-        <div class="stat-lbl">Total Chunks (~900 Words Each)</div>
+        <div class="stat-lbl">Total Chunks (~2,500 Words Each)</div>
       </div>
       <div class="stat-card">
         <div class="stat-val" id="statDoneChunks">0 / {{ state.chunks|length }}</div>
@@ -634,7 +634,7 @@ def start_studio(docx_path: str, port: int = 5050):
     print(f"  Document: {DOC_STATE['filename']}")
     print(f"  Locked Headings: {DOC_STATE['locked_headings']} (Preserved)")
     print(f"  Prose Paragraphs: {DOC_STATE['total_prose_paras']}")
-    print(f"  Chunks Created: {len(DOC_STATE['chunks'])} (~900 words each)")
+    print(f"  Chunks Created: {len(DOC_STATE['chunks'])} (~2,500 words each)")
     print(f"  Opening Studio: {url}")
     print(f"=======================================================\n")
     webbrowser.open(url)
