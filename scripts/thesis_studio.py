@@ -322,6 +322,12 @@ def replace_paragraph_text_preserving_style(paragraph, new_text: str, is_list: b
     colon_idx = cleaned_text.find(":")
     has_prefix_pattern = (0 < colon_idx < 80) and first_run_was_bold and not is_entirely_bold
 
+    # Prevent Word from stretching short heading/label lines across margins under JUSTIFY alignment
+    word_count = len(cleaned_text.split())
+    if word_count <= 14 and paragraph.alignment == WD_ALIGN_PARAGRAPH.JUSTIFY:
+        if not cleaned_text.endswith((".", "!", "?")) or cleaned_text.endswith(":"):
+            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
+
     for run in paragraph.runs:
         run.text = ""
 
