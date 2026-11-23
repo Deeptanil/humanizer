@@ -20,3 +20,7 @@ change_report.md
 .DS_Store
 
 node_modules/
+scratch/
+logs/
+.*_session.json
+*_humanized*.docx
