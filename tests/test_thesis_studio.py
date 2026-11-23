@@ -54,6 +54,19 @@ def test_recombine_orphan_headers():
     assert recomb[0].startswith("1. Natural Language Intent Bar (R1, R4, R10): A large natural language")
     assert recomb[1].startswith("Tian, Y. and Mi, X., 2025.")
 
+
+def test_caption_vs_prose():
+    from scripts.thesis_studio import is_figure_caption
+    doc = docx.Document()
+    # Real short caption
+    p_caption = doc.add_paragraph("Table 3.1 Market Analysis Summary")
+    assert is_figure_caption(p_caption) is True
+
+    # Analytical prose discussing the table (> 30 words)
+    long_prose = "Table 3.1 summarises the findings of the market analysis. The common pattern across the three applications is that each interface provides basic accessibility modes but abruptly ceases support at third-party application boundaries, forcing older adults into confusing cognitive friction."
+    p_prose = doc.add_paragraph(long_prose)
+    assert is_figure_caption(p_prose) is False
+
 def test_bold_bleed_protection():
     doc = docx.Document()
     p = doc.add_paragraph()
@@ -82,6 +95,7 @@ if __name__ == "__main__":
     test_split_bullet_merger()
     test_list_cleaning_and_numbering()
     test_recombine_orphan_headers()
+    test_caption_vs_prose()
     test_bold_bleed_protection()
     test_align_humanized_text()
     print("ALL TESTS PASSED SUCCESSFULLY!")

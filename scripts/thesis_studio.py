@@ -95,6 +95,9 @@ def is_figure_caption(paragraph) -> bool:
     text = paragraph.text.strip()
     if not text:
         return False
+    # If text is 30 or more words, it is analytical prose discussing the figure/table, NOT a caption label
+    if count_words(text) >= 30:
+        return False
     if CAPTION_REGEX.match(text):
         return True
     return False
